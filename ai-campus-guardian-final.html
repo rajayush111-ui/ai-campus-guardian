@@ -1,0 +1,2195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Campus Guardian</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-primary: #070b14;
+  --bg-secondary: #0c1220;
+  --bg-card: #0f1825;
+  --bg-card2: #111d2e;
+  --border: rgba(0,200,255,0.12);
+  --border-bright: rgba(0,200,255,0.35);
+  --accent-cyan: #00c8ff;
+  --accent-green: #00ff9d;
+  --accent-red: #ff2d55;
+  --accent-orange: #ff8c00;
+  --accent-yellow: #ffd700;
+  --text-primary: #e8f4ff;
+  --text-secondary: #7a9bbf;
+  --text-muted: #3d5a7a;
+  --glow-cyan: 0 0 20px rgba(0,200,255,0.4);
+  --glow-red: 0 0 20px rgba(255,45,85,0.5);
+  --glow-green: 0 0 20px rgba(0,255,157,0.4);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Exo 2', sans-serif;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background: repeating-linear-gradient(
+    0deg, transparent, transparent 2px,
+    rgba(0,200,255,0.015) 2px, rgba(0,200,255,0.015) 4px
+  );
+  pointer-events: none; z-index: 9999;
+}
+
+/* ─── NAV ─── */
+nav {
+  background: rgba(7,11,20,0.97);
+  border-bottom: 1px solid var(--border-bright);
+  backdrop-filter: blur(20px);
+  position: sticky; top: 0; z-index: 1000;
+  padding: 0 24px;
+  display: flex; align-items: center;
+  height: 56px;
+  box-shadow: 0 1px 30px rgba(0,200,255,0.08);
+}
+.nav-logo {
+  display: flex; align-items: center; gap: 10px;
+  margin-right: 32px; text-decoration: none; cursor: default;
+}
+.nav-logo .shield {
+  width: 32px; height: 32px;
+  background: linear-gradient(135deg, var(--accent-cyan), #0055aa);
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; box-shadow: var(--glow-cyan);
+  animation: shieldPulse 3s ease-in-out infinite;
+}
+@keyframes shieldPulse {
+  0%,100% { box-shadow: 0 0 10px rgba(0,200,255,0.4); }
+  50% { box-shadow: 0 0 25px rgba(0,200,255,0.8), 0 0 50px rgba(0,200,255,0.2); }
+}
+.nav-logo span {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 18px; font-weight: 700; letter-spacing: 1px;
+  color: var(--accent-cyan); text-shadow: var(--glow-cyan);
+}
+.nav-links { display: flex; gap: 2px; flex: 1; }
+.nav-link {
+  padding: 6px 16px;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 13px; font-weight: 600; letter-spacing: 0.5px;
+  color: var(--text-secondary); cursor: pointer;
+  border-radius: 4px; transition: all 0.2s;
+  border: 1px solid transparent; text-transform: uppercase;
+}
+.nav-link:hover { color: var(--accent-cyan); background: rgba(0,200,255,0.05); }
+.nav-link.active {
+  color: var(--accent-cyan); background: rgba(0,200,255,0.1);
+  border-color: var(--border-bright);
+  text-shadow: 0 0 8px rgba(0,200,255,0.6);
+}
+.nav-right { display: flex; align-items: center; gap: 16px; margin-left: auto; }
+.status-pill {
+  display: flex; align-items: center; gap: 6px;
+  padding: 4px 12px; border-radius: 20px;
+  font-family: 'Share Tech Mono', monospace; font-size: 11px;
+}
+.status-pill.online {
+  background: rgba(0,255,157,0.1); border: 1px solid rgba(0,255,157,0.3);
+  color: var(--accent-green);
+}
+.status-pill.alert {
+  background: rgba(255,45,85,0.1); border: 1px solid rgba(255,45,85,0.4);
+  color: var(--accent-red); animation: alertBlink 1s ease-in-out infinite;
+}
+@keyframes alertBlink { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
+.dot {
+  width: 6px; height: 6px; border-radius: 50%; background: currentColor;
+  animation: dotPulse 2s ease-in-out infinite;
+}
+@keyframes dotPulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.4); opacity: 0.7; } }
+.notif-btn {
+  position: relative; background: none; border: 1px solid var(--border);
+  color: var(--text-secondary); width: 34px; height: 34px; border-radius: 6px;
+  cursor: pointer; font-size: 15px;
+  display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+}
+.notif-btn:hover { border-color: var(--accent-cyan); color: var(--accent-cyan); }
+.notif-badge {
+  position: absolute; top: -4px; right: -4px;
+  background: var(--accent-red); color: white;
+  width: 16px; height: 16px; border-radius: 50%;
+  font-size: 9px; display: flex; align-items: center; justify-content: center;
+  font-weight: 700; box-shadow: var(--glow-red);
+}
+
+/* ─── PAGES ─── */
+.page { display: none; animation: fadeIn 0.3s ease; }
+.page.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg-primary); }
+::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 2px; }
+
+/* ─── CARDS ─── */
+.card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 8px; padding: 16px;
+  position: relative; overflow: hidden; transition: border-color 0.3s;
+}
+.card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent-cyan), transparent);
+  opacity: 0.4;
+}
+.card:hover { border-color: var(--border-bright); }
+.card-title {
+  font-family: 'Rajdhani', sans-serif; font-size: 11px; font-weight: 600;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--accent-cyan); margin-bottom: 14px;
+  display: flex; align-items: center; gap: 8px;
+}
+
+/* ─── BUTTONS ─── */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px;
+  border-radius: 6px; font-family: 'Rajdhani', sans-serif;
+  font-size: 13px; font-weight: 600; letter-spacing: 0.5px;
+  cursor: pointer; transition: all 0.2s; border: none; text-transform: uppercase;
+}
+.btn-primary { background: linear-gradient(135deg, #0055aa, #0088cc); color: white; box-shadow: 0 0 15px rgba(0,100,200,0.3); }
+.btn-primary:hover { box-shadow: 0 0 25px rgba(0,150,255,0.5); transform: translateY(-1px); }
+.btn-danger { background: linear-gradient(135deg, #cc0022, #ff2d55); color: white; box-shadow: 0 0 15px rgba(255,45,85,0.3); }
+.btn-danger:hover { box-shadow: var(--glow-red); transform: translateY(-1px); }
+.btn-ghost { background: rgba(0,200,255,0.08); border: 1px solid var(--border-bright); color: var(--accent-cyan); }
+.btn-ghost:hover { background: rgba(0,200,255,0.15); box-shadow: var(--glow-cyan); }
+.btn-success { background: linear-gradient(135deg, #006644, rgba(0,255,157,0.27)); border: 1px solid rgba(0,255,157,0.4); color: var(--accent-green); }
+.btn-success:hover { box-shadow: var(--glow-green); }
+
+/* ─── BADGE ─── */
+.badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px; border-radius: 4px;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.5px;
+  text-transform: uppercase; font-family: 'Share Tech Mono', monospace;
+}
+.badge-red { background: rgba(255,45,85,0.15); border: 1px solid rgba(255,45,85,0.4); color: var(--accent-red); }
+.badge-orange { background: rgba(255,140,0,0.15); border: 1px solid rgba(255,140,0,0.4); color: var(--accent-orange); }
+.badge-green { background: rgba(0,255,157,0.1); border: 1px solid rgba(0,255,157,0.3); color: var(--accent-green); }
+.badge-cyan { background: rgba(0,200,255,0.1); border: 1px solid rgba(0,200,255,0.3); color: var(--accent-cyan); }
+.badge-yellow { background: rgba(255,215,0,0.1); border: 1px solid rgba(255,215,0,0.3); color: var(--accent-yellow); }
+
+/* ════════════════════════════════════
+   PAGE 1 — DASHBOARD
+════════════════════════════════════ */
+#dashboard { padding: 20px 24px; }
+
+.dashboard-grid {
+  max-width: 1400px; margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  grid-template-rows: auto;
+  gap: 16px;
+  align-items: start;
+}
+
+/* Column 1 spans */
+.db-col1 { display: flex; flex-direction: column; gap: 16px; }
+.db-col2 { display: flex; flex-direction: column; gap: 16px; }
+
+/* Camera Feeds */
+.camera-feeds {
+  background: var(--bg-card); border: 1px solid var(--border-bright);
+  border-radius: 8px; padding: 14px; position: relative;
+}
+.camera-feeds::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent-cyan), transparent);
+  opacity: 0.4;
+}
+.camera-feeds:hover { border-color: var(--border-bright); }
+.camera-feeds-header {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;
+}
+.camera-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.camera-cell {
+  aspect-ratio: 16/9; position: relative; border-radius: 6px; overflow: hidden;
+  background: #050a10; border: 1px solid var(--border);
+  cursor: pointer; transition: border-color 0.2s, transform 0.2s;
+}
+.camera-cell:hover { border-color: var(--accent-cyan); transform: scale(1.01); }
+.camera-cell-bg { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+.camera-label {
+  position: absolute; top: 6px; left: 6px;
+  background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+  border: 1px solid var(--border); padding: 2px 8px; border-radius: 4px;
+  font-family: 'Share Tech Mono', monospace; font-size: 10px; color: var(--text-secondary);
+  display: flex; align-items: center; gap: 4px;
+}
+.live-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--accent-red); animation: dotPulse 1.5s ease-in-out infinite;
+}
+.cam-actions { position: absolute; bottom: 6px; right: 6px; display: flex; gap: 4px; }
+.cam-action-btn {
+  width: 24px; height: 24px; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+  border: 1px solid var(--border); border-radius: 4px; cursor: pointer;
+  color: var(--text-secondary); font-size: 10px;
+  display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+}
+.cam-action-btn:hover { border-color: var(--accent-cyan); color: var(--accent-cyan); }
+
+/* Analytics */
+.analytics-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 4px; }
+.stat-box {
+  background: var(--bg-secondary); border: 1px solid var(--border);
+  border-radius: 6px; padding: 10px 12px; position: relative;
+  transition: border-color 0.2s;
+}
+.stat-box:hover { border-color: var(--border-bright); }
+.stat-label { font-size: 10px; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+.stat-value { font-family: 'Rajdhani', sans-serif; font-size: 26px; font-weight: 700; color: var(--accent-cyan); }
+.stat-sub { font-size: 10px; color: var(--text-secondary); }
+
+/* Incident Timeline */
+.incident-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 10px 0; border-bottom: 1px solid var(--border);
+  cursor: pointer; transition: all 0.2s;
+}
+.incident-item:last-child { border-bottom: none; }
+.incident-item:hover { background: rgba(0,200,255,0.03); border-radius: 4px; padding-left: 6px; }
+.incident-icon {
+  width: 32px; height: 32px; border-radius: 6px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 14px;
+}
+.incident-icon.fire { background: rgba(255,140,0,0.15); border: 1px solid rgba(255,140,0,0.3); }
+.incident-icon.access { background: rgba(255,215,0,0.1); border: 1px solid rgba(255,215,0,0.3); }
+.incident-icon.person { background: rgba(0,200,255,0.1); border: 1px solid rgba(0,200,255,0.3); }
+.incident-info { flex: 1; }
+.incident-title { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+.incident-detail { font-size: 11px; color: var(--text-secondary); }
+.incident-meta { display: flex; align-items: center; gap: 8px; margin-top: 3px; }
+.incident-time { font-family: 'Share Tech Mono', monospace; font-size: 10px; color: var(--text-muted); }
+
+/* Threat Card */
+.threat-status-safe {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; text-align: center; gap: 12px; padding: 8px 0;
+}
+.threat-icon-wrap {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: rgba(0,255,157,0.1); border: 2px solid rgba(0,255,157,0.3);
+  display: flex; align-items: center; justify-content: center; font-size: 28px;
+  animation: safePulse 3s ease-in-out infinite;
+}
+@keyframes safePulse {
+  0%,100% { box-shadow: 0 0 10px rgba(0,255,157,0.2); }
+  50% { box-shadow: 0 0 30px rgba(0,255,157,0.5); }
+}
+.threat-safe-label { color: var(--accent-green); font-size: 11px; font-weight: 700; letter-spacing: 2px; font-family: 'Share Tech Mono', monospace; }
+.threat-title { font-family: 'Rajdhani', sans-serif; font-size: 22px; font-weight: 700; }
+.threat-sub { font-size: 12px; color: var(--text-secondary); }
+.system-integrity {
+  margin-top: 16px; padding: 10px 14px;
+  background: var(--bg-secondary); border: 1px solid var(--border);
+  border-radius: 6px; display: flex; align-items: center; justify-content: space-between;
+}
+
+/* Campus Map */
+.map-container {
+  background: #08121e; border: 1px solid var(--border);
+  border-radius: 6px; height: 200px; position: relative; overflow: hidden;
+}
+.map-grid {
+  position: absolute; inset: 0;
+  background-image: linear-gradient(rgba(0,200,255,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,200,255,0.05) 1px, transparent 1px);
+  background-size: 30px 30px;
+}
+.map-building {
+  position: absolute; border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.6);
+  letter-spacing: 0.5px; text-align: center;
+}
+.map-building.safe { background: rgba(0,200,255,0.15); border: 1px solid rgba(0,200,255,0.3); }
+.map-building.danger { background: rgba(255,45,85,0.2); border: 1px solid rgba(255,45,85,0.5); animation: dangerPulse 2s ease-in-out infinite; }
+.map-building.warning { background: rgba(255,140,0,0.15); border: 1px solid rgba(255,140,0,0.4); }
+@keyframes dangerPulse {
+  0%,100% { box-shadow: 0 0 5px rgba(255,45,85,0.3); }
+  50% { box-shadow: 0 0 20px rgba(255,45,85,0.7); }
+}
+.map-marker {
+  position: absolute; width: 10px; height: 10px; border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+.map-marker::before {
+  content: ''; position: absolute; inset: -4px; border-radius: 50%;
+  border: 1px solid currentColor;
+  animation: markerPulse 2s ease-out infinite; opacity: 0.5;
+}
+@keyframes markerPulse { 0% { transform: scale(1); opacity: 0.5; } 100% { transform: scale(2.5); opacity: 0; } }
+.map-legend {
+  position: absolute; top: 8px; right: 8px;
+  background: rgba(7,11,20,0.8); backdrop-filter: blur(6px);
+  border: 1px solid var(--border); border-radius: 4px; padding: 6px 10px;
+  display: flex; gap: 10px;
+}
+.map-legend-item { display: flex; align-items: center; gap: 4px; font-size: 9px; color: var(--text-secondary); }
+.map-legend-dot { width: 6px; height: 6px; border-radius: 50%; }
+.map-controls { position: absolute; bottom: 8px; right: 8px; display: flex; flex-direction: column; gap: 2px; }
+.map-ctrl-btn {
+  width: 24px; height: 24px; background: rgba(7,11,20,0.8);
+  border: 1px solid var(--border); border-radius: 4px;
+  color: var(--text-secondary); font-size: 12px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+}
+.map-ctrl-btn:hover { border-color: var(--accent-cyan); color: var(--accent-cyan); }
+
+/* ─── Recent Detections (right col) ─── */
+.detection-list { display: flex; flex-direction: column; gap: 8px; }
+.detection-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: 6px;
+  background: var(--bg-secondary); border: 1px solid var(--border);
+  cursor: pointer; transition: all 0.2s;
+}
+.detection-item:hover { border-color: var(--border-bright); background: rgba(0,200,255,0.04); }
+.detection-thumb {
+  width: 36px; height: 36px; border-radius: 6px;
+  background: var(--bg-card); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; flex-shrink: 0;
+}
+.detection-info { flex: 1; min-width: 0; }
+.detection-type { font-size: 12px; font-weight: 600; }
+.detection-time { font-family: 'Share Tech Mono', monospace; font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+.detection-conf { font-family: 'Share Tech Mono', monospace; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+
+/* Operator Notes */
+.op-notes-textarea {
+  width: 100%; background: var(--bg-secondary); border: 1px solid var(--border);
+  border-radius: 4px; color: var(--text-secondary); font-size: 11px;
+  padding: 8px; resize: none; height: 70px; outline: none;
+  font-family: 'Exo 2', sans-serif; transition: border-color 0.2s;
+}
+.op-notes-textarea:focus { border-color: var(--accent-cyan); }
+
+/* ════════════════════════════════════
+   PAGE 2 — LIVE CAMERA
+════════════════════════════════════ */
+#live-camera { padding: 20px 24px; }
+.live-camera-grid {
+  max-width: 1400px; margin: 0 auto;
+  display: grid; grid-template-columns: 1fr 300px; gap: 16px;
+}
+.camera-viewer {
+  background: #020508; border: 1px solid var(--border-bright);
+  border-radius: 8px; overflow: hidden; position: relative;
+}
+.camera-viewer-header {
+  background: rgba(7,11,20,0.9); padding: 8px 14px;
+  display: flex; align-items: center; gap: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.live-badge {
+  background: var(--accent-red); color: white; padding: 2px 8px; border-radius: 3px;
+  font-size: 10px; font-weight: 800; letter-spacing: 1px;
+  animation: alertBlink 1.5s ease-in-out infinite;
+}
+.viewer-meta {
+  font-family: 'Share Tech Mono', monospace; font-size: 11px;
+  color: var(--text-secondary); margin-left: auto; display: flex; gap: 14px;
+}
+.camera-feed-area {
+  height: 380px; position: relative; background: #020a12;
+  display: flex; align-items: center; justify-content: center; overflow: hidden;
+}
+.feed-scene {
+  width: 100%; height: 100%;
+  background: linear-gradient(180deg, #0a1520 0%, #050d18 60%, #020810 100%);
+  position: relative;
+}
+.det-box { position: absolute; border: 2px solid; border-radius: 3px; animation: boxAppear 0.3s ease; }
+@keyframes boxAppear { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+.det-box.person { border-color: #00ff9d; }
+.det-box.vehicle { border-color: var(--accent-cyan); }
+.det-box.threat { border-color: var(--accent-red); }
+.det-label {
+  position: absolute; top: -20px; left: 0;
+  font-family: 'Share Tech Mono', monospace; font-size: 10px;
+  padding: 1px 6px; border-radius: 2px; white-space: nowrap;
+}
+.det-box.person .det-label { background: rgba(0,255,157,0.2); color: #00ff9d; border: 1px solid rgba(0,255,157,0.4); }
+.det-box.vehicle .det-label { background: rgba(0,200,255,0.2); color: var(--accent-cyan); border: 1px solid rgba(0,200,255,0.4); }
+.det-box.threat .det-label { background: rgba(255,45,85,0.2); color: var(--accent-red); border: 1px solid rgba(255,45,85,0.4); }
+.scan-line {
+  position: absolute; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent-cyan), transparent);
+  opacity: 0.6; animation: scanAnim 3s linear infinite;
+}
+@keyframes scanAnim { from { top: 0; } to { top: 100%; } }
+.camera-controls {
+  background: rgba(7,11,20,0.95); padding: 10px 14px;
+  border-top: 1px solid var(--border);
+  display: flex; align-items: center; gap: 12px;
+}
+.ctrl-btn {
+  width: 32px; height: 32px; border-radius: 6px;
+  background: rgba(0,200,255,0.08); border: 1px solid var(--border);
+  color: var(--text-secondary); cursor: pointer; font-size: 13px;
+  display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+}
+.ctrl-btn:hover { border-color: var(--accent-cyan); color: var(--accent-cyan); }
+.ctrl-btn.active { border-color: var(--accent-cyan); color: var(--accent-cyan); background: rgba(0,200,255,0.15); }
+.timeline-bar { flex: 1; height: 4px; background: var(--bg-secondary); border-radius: 2px; position: relative; cursor: pointer; }
+.timeline-fill { height: 100%; background: linear-gradient(90deg, var(--accent-cyan), #0088cc); border-radius: 2px; width: 30%; }
+.timeline-dot {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--accent-cyan); left: 30%; box-shadow: var(--glow-cyan); cursor: grab;
+}
+.cam-tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+.cam-tab {
+  padding: 5px 14px; border-radius: 5px;
+  font-family: 'Rajdhani', sans-serif; font-size: 12px; font-weight: 600;
+  cursor: pointer; border: 1px solid var(--border);
+  background: none; color: var(--text-secondary); transition: all 0.2s;
+}
+.cam-tab.active { background: rgba(0,200,255,0.12); border-color: var(--accent-cyan); color: var(--accent-cyan); }
+.cam-tab:hover:not(.active) { border-color: var(--border-bright); color: var(--text-primary); }
+.quick-actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.quick-btn {
+  padding: 8px 10px; border-radius: 6px; cursor: pointer;
+  font-family: 'Rajdhani', sans-serif; font-size: 12px; font-weight: 600;
+  letter-spacing: 0.3px; text-align: center;
+  background: var(--bg-secondary); border: 1px solid var(--border);
+  color: var(--text-secondary); transition: all 0.2s;
+  display: flex; align-items: center; justify-content: center; gap: 4px;
+}
+.quick-btn:hover { border-color: var(--accent-cyan); color: var(--accent-cyan); background: rgba(0,200,255,0.08); }
+.quick-btn.recording { border-color: var(--accent-red); color: var(--accent-red); background: rgba(255,45,85,0.08); animation: alertBlink 1s ease-in-out infinite; }
+.info-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+.info-row:last-child { border-bottom: none; }
+.info-label { color: var(--text-muted); font-size: 11px; }
+.info-value { color: var(--text-primary); font-family: 'Share Tech Mono', monospace; font-size: 11px; }
+.zoom-slider { width: 100%; -webkit-appearance: none; height: 4px; background: var(--bg-secondary); border-radius: 2px; outline: none; }
+.zoom-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--accent-cyan); cursor: pointer; box-shadow: var(--glow-cyan); }
+
+/* ════════════════════════════════════
+   PAGE 3 — INCIDENTS
+════════════════════════════════════ */
+#incidents { padding: 20px 24px; }
+.major-alert {
+  background: linear-gradient(135deg, rgba(255,45,85,0.08), rgba(255,45,85,0.03));
+  border: 1px solid rgba(255,45,85,0.4); border-radius: 8px; padding: 20px;
+  margin-bottom: 20px; position: relative; overflow: hidden;
+  animation: alertGlow 2s ease-in-out infinite;
+}
+@keyframes alertGlow {
+  0%,100% { box-shadow: 0 0 15px rgba(255,45,85,0.1); }
+  50% { box-shadow: 0 0 30px rgba(255,45,85,0.25); }
+}
+.major-alert::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--accent-red), transparent); }
+.alert-header { display: flex; align-items: flex-start; gap: 14px; }
+.alert-icon-big {
+  width: 48px; height: 48px; border-radius: 8px;
+  background: rgba(255,45,85,0.2); border: 1px solid rgba(255,45,85,0.4);
+  display: flex; align-items: center; justify-content: center; font-size: 22px;
+  flex-shrink: 0; animation: alertBlink 1s ease-in-out infinite;
+}
+.alert-title { font-family: 'Rajdhani', sans-serif; font-size: 22px; font-weight: 700; color: var(--accent-red); letter-spacing: 1px; }
+.alert-meta { display: flex; gap: 16px; margin-top: 6px; flex-wrap: wrap; }
+.alert-meta-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); }
+.alert-actions { display: flex; gap: 8px; margin-left: auto; flex-shrink: 0; }
+.alert-desc { margin-top: 12px; font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+.incident-detail-grid { display: grid; grid-template-columns: 1fr 260px 280px; gap: 16px; }
+.playback-viewer {
+  background: #010608; border-radius: 6px; height: 220px; position: relative; overflow: hidden;
+  border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
+}
+.fight-scene { width: 100%; height: 100%; background: linear-gradient(180deg, #0a1520 0%, #030a12 100%); position: relative; }
+.fight-figure { position: absolute; bottom: 30%; font-size: 40px; animation: fightAnim 0.5s ease-in-out infinite alternate; }
+.fight-figure:nth-child(1) { left: 30%; }
+.fight-figure:nth-child(2) { right: 30%; transform: scaleX(-1); }
+@keyframes fightAnim { from { transform: translateX(0) rotate(-5deg); } to { transform: translateX(8px) rotate(5deg); } }
+.playback-controls { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+.frame-btn {
+  padding: 4px 10px; font-size: 11px; background: var(--bg-secondary); border: 1px solid var(--border);
+  border-radius: 4px; color: var(--text-secondary); cursor: pointer;
+  font-family: 'Share Tech Mono', monospace; transition: all 0.2s;
+}
+.frame-btn:hover { border-color: var(--accent-cyan); color: var(--accent-cyan); }
+.thumbnails { display: flex; gap: 6px; margin-top: 8px; }
+.thumb {
+  flex: 1; height: 50px; border-radius: 4px; background: var(--bg-secondary); border: 1px solid var(--border);
+  cursor: pointer; overflow: hidden; display: flex; align-items: center; justify-content: center;
+  font-size: 18px; transition: border-color 0.2s;
+}
+.thumb:hover { border-color: var(--accent-cyan); }
+.thumb.active { border-color: var(--accent-red); }
+.related-events { margin-top: 16px; }
+.related-title { font-family: 'Rajdhani', sans-serif; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent-cyan); margin-bottom: 10px; }
+.related-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.related-item { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 6px; padding: 8px; cursor: pointer; transition: border-color 0.2s; }
+.related-item:hover { border-color: var(--border-bright); }
+.related-thumb { height: 40px; border-radius: 4px; background: #020810; margin-bottom: 6px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+.related-info { font-size: 10px; color: var(--text-secondary); }
+.related-info strong { display: block; font-size: 11px; color: var(--text-primary); margin-bottom: 2px; }
+.person-card {
+  background: var(--bg-secondary); border: 1px solid var(--border);
+  border-radius: 6px; padding: 10px; margin-bottom: 8px;
+  transition: border-color 0.2s; cursor: pointer;
+}
+.person-card:hover { border-color: var(--border-bright); }
+.person-card:last-child { margin-bottom: 0; }
+.person-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.person-avatar {
+  width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+  background: linear-gradient(135deg, #1a3a5c, #0a1e35); border: 2px solid;
+  display: flex; align-items: center; justify-content: center; font-size: 16px;
+}
+.person-name { font-size: 13px; font-weight: 600; }
+.person-role { font-size: 10px; color: var(--text-secondary); }
+.person-conf { font-family: 'Share Tech Mono', monospace; font-size: 10px; margin-top: 2px; }
+.person-actions { display: flex; gap: 6px; }
+.person-actions .btn { flex: 1; font-size: 10px; padding: 5px 8px; justify-content: center; }
+.snapshot-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 10px; }
+.snapshot {
+  border-radius: 4px; overflow: hidden; background: var(--bg-secondary); border: 1px solid var(--border);
+  height: 70px; display: flex; align-items: center; justify-content: center;
+  font-size: 24px; cursor: pointer; transition: border-color 0.2s;
+}
+.snapshot:hover { border-color: var(--accent-cyan); }
+.ai-analysis-box { background: rgba(0,200,255,0.04); border: 1px solid rgba(0,200,255,0.15); border-radius: 6px; padding: 10px; margin-bottom: 10px; }
+.ai-analysis-title { color: var(--accent-cyan); font-size: 11px; font-weight: 700; letter-spacing: 1px; margin-bottom: 6px; }
+.ai-analysis-text { font-size: 11px; color: var(--text-secondary); line-height: 1.6; }
+.response-steps { margin-bottom: 10px; }
+.response-step { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+.response-step:last-child { border-bottom: none; }
+.step-check {
+  width: 16px; height: 16px; border-radius: 3px; border: 1px solid var(--border);
+  flex-shrink: 0; cursor: pointer; background: none;
+  display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+}
+.step-check.checked { background: rgba(0,255,157,0.2); border-color: var(--accent-green); color: var(--accent-green); }
+.escalate-btns { display: flex; gap: 6px; }
+.escalate-btns .btn { flex: 1; font-size: 11px; justify-content: center; }
+
+/* ════════════════════════════════════
+   PAGE 4 — MAP & ZONES
+════════════════════════════════════ */
+#map-zones { padding: 20px 24px; }
+
+/* ════════════════════════════════════
+   PAGE 5 — SETTINGS
+════════════════════════════════════ */
+#settings { padding: 20px 24px; }
+.camera-list-item {
+  background: var(--bg-secondary); border: 1px solid var(--border);
+  border-radius: 6px; padding: 10px 12px;
+  display: flex; align-items: center; gap: 10px; margin-bottom: 6px; transition: border-color 0.2s;
+}
+.camera-list-item:last-child { margin-bottom: 0; }
+.camera-list-item:hover { border-color: var(--border-bright); }
+.cam-indicator { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.cam-indicator.online { background: var(--accent-green); box-shadow: 0 0 6px rgba(0,255,157,0.5); }
+.cam-indicator.warning { background: var(--accent-orange); box-shadow: 0 0 6px rgba(255,140,0,0.5); }
+.cam-info { flex: 1; }
+.cam-info-name { font-size: 12px; font-weight: 600; }
+.cam-info-ip { font-family: 'Share Tech Mono', monospace; font-size: 10px; color: var(--text-muted); }
+.cam-list-actions { display: flex; gap: 4px; }
+.cam-list-btn {
+  padding: 3px 8px; font-size: 10px; background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 4px; color: var(--text-secondary); cursor: pointer;
+  font-family: 'Rajdhani', sans-serif; font-weight: 600; transition: all 0.2s;
+}
+.cam-list-btn:hover { border-color: var(--accent-cyan); color: var(--accent-cyan); }
+.alert-rule { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; margin-bottom: 6px; }
+.rule-header { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.rule-name { font-size: 13px; font-weight: 600; flex: 1; }
+.rule-desc { font-size: 11px; color: var(--text-secondary); margin-bottom: 8px; }
+.rule-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.rule-select { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-secondary); font-size: 11px; padding: 3px 6px; border-radius: 4px; outline: none; }
+.rule-select:focus { border-color: var(--accent-cyan); }
+.sensitivity-slider { width: 80px; -webkit-appearance: none; height: 4px; background: var(--bg-card); border-radius: 2px; outline: none; }
+.sensitivity-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: var(--accent-cyan); cursor: pointer; }
+
+/* Toggle Switch */
+.toggle { position: relative; width: 36px; height: 20px; cursor: pointer; display: inline-block; }
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle-track { position: absolute; inset: 0; border-radius: 10px; background: var(--bg-card); border: 1px solid var(--border); transition: all 0.3s; }
+.toggle input:checked + .toggle-track { background: rgba(0,200,255,0.2); border-color: var(--accent-cyan); }
+.toggle-thumb { position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 50%; background: var(--text-muted); transition: all 0.3s; pointer-events: none; }
+.toggle input:checked ~ .toggle-thumb { left: 19px; background: var(--accent-cyan); box-shadow: var(--glow-cyan); }
+
+.notif-item { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 6px; padding: 10px; margin-bottom: 6px; position: relative; overflow: hidden; }
+.notif-item::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; }
+.notif-item.notif-high::before { background: var(--accent-red); }
+.notif-item.notif-med::before { background: var(--accent-orange); }
+.notif-item.notif-low::before { background: var(--accent-cyan); }
+.notif-item-header { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.notif-id { font-family: 'Share Tech Mono', monospace; font-size: 10px; color: var(--accent-cyan); }
+.notif-title { font-size: 12px; font-weight: 600; flex: 1; }
+.notif-time { font-size: 10px; color: var(--text-muted); font-family: 'Share Tech Mono', monospace; }
+.notif-desc { font-size: 11px; color: var(--text-secondary); margin-bottom: 6px; line-height: 1.5; }
+.notif-actions { display: flex; gap: 6px; }
+.notif-btn-sm {
+  padding: 2px 8px; font-size: 10px; border-radius: 3px;
+  background: var(--bg-card); border: 1px solid var(--border);
+  color: var(--text-secondary); cursor: pointer;
+  font-family: 'Rajdhani', sans-serif; font-weight: 600; transition: all 0.2s;
+}
+.notif-btn-sm:hover { border-color: var(--accent-cyan); color: var(--accent-cyan); }
+.notif-btn-sm.dismiss { color: var(--accent-red); }
+.notif-btn-sm.dismiss:hover { border-color: var(--accent-red); }
+.user-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.user-item {
+  background: var(--bg-secondary); border: 1px solid var(--border);
+  border-radius: 6px; padding: 8px; display: flex; align-items: center; gap: 8px;
+}
+.user-avatar-sm {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: linear-gradient(135deg, #1a3a5c, #0a1e35);
+  border: 1px solid var(--border-bright);
+  display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0;
+}
+.user-name { font-size: 12px; font-weight: 600; }
+.user-email { font-size: 10px; color: var(--text-muted); }
+.integration-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.integration-item:last-child { border-bottom: none; }
+.integration-icon { width: 32px; height: 32px; border-radius: 6px; background: var(--bg-secondary); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 14px; }
+.integration-name { font-size: 12px; font-weight: 600; flex: 1; }
+.integration-status { font-size: 10px; color: var(--text-muted); }
+.test-btn {
+  padding: 3px 8px; font-size: 10px; background: var(--bg-card); border: 1px solid var(--border);
+  color: var(--text-secondary); cursor: pointer; border-radius: 4px;
+  font-family: 'Rajdhani', sans-serif; font-weight: 600; transition: all 0.2s;
+}
+.test-btn:hover { border-color: var(--accent-cyan); color: var(--accent-cyan); }
+
+/* ─── MODALS ─── */
+.alert-overlay {
+  position: fixed; inset: 0; z-index: 3000;
+  background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+  display: none; align-items: center; justify-content: center;
+}
+.alert-overlay.show { display: flex; }
+.alert-modal {
+  background: var(--bg-card); border: 1px solid rgba(255,45,85,0.5);
+  border-radius: 12px; padding: 28px; max-width: 440px; width: 90%;
+  animation: modalIn 0.3s ease; box-shadow: 0 0 60px rgba(255,45,85,0.3);
+}
+@keyframes modalIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.modal-title { font-family: 'Rajdhani', sans-serif; font-size: 22px; font-weight: 700; color: var(--accent-red); margin-bottom: 12px; letter-spacing: 1px; }
+.modal-body { font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 20px; }
+.modal-actions { display: flex; gap: 10px; }
+.modal-actions .btn { flex: 1; justify-content: center; }
+
+/* ─── TOAST ─── */
+#toastContainer { position: fixed; top: 70px; right: 24px; z-index: 2000; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+.toast {
+  background: rgba(7,11,20,0.97); backdrop-filter: blur(16px);
+  border: 1px solid; border-radius: 8px; padding: 12px 16px;
+  min-width: 280px; max-width: 360px;
+  display: flex; align-items: flex-start; gap: 10px;
+  animation: slideIn 0.3s ease; box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  pointer-events: all;
+}
+.toast.success { border-color: rgba(0,255,157,0.4); box-shadow: var(--glow-green); }
+.toast.danger { border-color: rgba(255,45,85,0.5); box-shadow: var(--glow-red); }
+.toast.info { border-color: rgba(0,200,255,0.4); box-shadow: var(--glow-cyan); }
+@keyframes slideIn { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+.toast-icon { font-size: 18px; flex-shrink: 0; }
+.toast-title { font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 0.5px; }
+.toast-msg { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+.toast-close { margin-left: auto; cursor: pointer; color: var(--text-muted); background: none; border: none; font-size: 16px; padding: 0; }
+
+/* ─── MISC ─── */
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.divider { height: 1px; background: var(--border); margin: 12px 0; }
+.mono { font-family: 'Share Tech Mono', monospace; }
+.text-cyan { color: var(--accent-cyan); }
+.text-green { color: var(--accent-green); }
+.text-red { color: var(--accent-red); }
+.text-orange { color: var(--accent-orange); }
+.text-muted { color: var(--text-muted); }
+.flex-center { display: flex; align-items: center; gap: 8px; }
+.mt-8 { margin-top: 8px; }
+.mt-12 { margin-top: 12px; }
+.mt-16 { margin-top: 16px; }
+.mb-8 { margin-bottom: 8px; }
+.w-full { width: 100%; }
+
+footer {
+  text-align: center; padding: 16px;
+  font-size: 11px; color: var(--text-muted);
+  border-top: 1px solid var(--border); margin-top: 24px;
+  font-family: 'Share Tech Mono', monospace;
+}
+
+/* Detection pulse for new events */
+@keyframes newDetection {
+  0% { background: rgba(0,200,255,0.15); }
+  100% { background: var(--bg-secondary); }
+}
+.detection-item.new { animation: newDetection 1.5s ease; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">
+    <div class="shield">🛡</div>
+    <span>AI Campus Guardian</span>
+  </div>
+  <div class="nav-links">
+    <div class="nav-link active" onclick="showPage('dashboard',this)">Dashboard</div>
+    <div class="nav-link" onclick="showPage('live-camera',this)">Live Camera</div>
+    <div class="nav-link" onclick="showPage('incidents',this)">Incidents</div>
+    <div class="nav-link" onclick="showPage('map-zones',this)">Map & Zones</div>
+    <div class="nav-link" onclick="showPage('settings',this)">Settings</div>
+  </div>
+  <div class="nav-right">
+    <div class="status-pill online" id="globalStatus">
+      <div class="dot"></div>
+      <span>All Sensors Online</span>
+    </div>
+    <button class="notif-btn" onclick="showPage('settings',document.querySelectorAll('.nav-link')[4])">
+      🔔
+      <span class="notif-badge" id="notifBadge">3</span>
+    </button>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- PAGE 1: DASHBOARD                       -->
+<!-- ═══════════════════════════════════════ -->
+<div id="dashboard" class="page active">
+<div id="dashboard" style="padding:20px 24px;">
+  <div class="dashboard-grid">
+
+    <!-- ─── LEFT COLUMN ─── -->
+    <div class="db-col1">
+
+      <!-- Camera Feeds -->
+      <div class="camera-feeds">
+        <div class="camera-feeds-header">
+          <div class="card-title" style="margin:0;">📹 Live Camera Feeds</div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:11px;color:var(--text-muted);">4 feeds • Auto-switch enabled</span>
+            <button class="btn btn-ghost" style="padding:4px 12px;font-size:11px;" onclick="showPage('live-camera',document.querySelectorAll('.nav-link')[1])">Grid ⤢</button>
+          </div>
+        </div>
+        <div class="camera-grid">
+          <!-- Camera 1 — LIVE BACKEND STREAM -->
+          <div class="camera-cell" onclick="openCamera(1)" title="Click to view Camera 1 Live">
+            <div class="camera-cell-bg" style="background:#000;padding:0;overflow:hidden;position:relative;">
+              <img id="dashCam1Thumb"
+                   src="http://127.0.0.1:8000/video"
+                   style="width:100%;height:100%;object-fit:cover;display:block;"
+                   onerror="this.style.display='none';document.getElementById('dashCam1Offline').style.display='flex';">
+              <div id="dashCam1Offline" style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;flex-direction:column;background:#050a10;">
+                <div style="font-size:28px;opacity:0.4;">🏢</div>
+                <div style="font-size:9px;color:var(--text-muted);margin-top:4px;font-family:'Share Tech Mono',monospace;">OFFLINE</div>
+              </div>
+            </div>
+            <div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent 60%,rgba(0,0,0,0.5));pointer-events:none;"></div>
+            <div class="camera-label"><div class="live-dot"></div>Camera 1 • Corridor</div>
+            <div class="cam-actions">
+              <div class="cam-action-btn" onclick="e=>{e.stopPropagation();showToast('info','Fullscreen','Fullscreen not available in demo')}" title="Fullscreen">⤢</div>
+              <div class="cam-action-btn" onclick="snapCam(event,1)" title="Snapshot">📷</div>
+              <div class="cam-action-btn text-cyan" title="AI Active">🤖</div>
+            </div>
+          </div>
+          <!-- Camera 2 -->
+          <div class="camera-cell" onclick="openCamera(2)" title="Click to view Camera 2">
+            <div class="camera-cell-bg" style="background:linear-gradient(180deg,#0d1e10,#060e08);">
+              <div style="font-size:40px;opacity:0.3;">🌳</div>
+            </div>
+            <div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(0,0,0,0.7));"></div>
+            <div style="position:absolute;top:30%;left:40%;width:35%;height:45%;border:2px solid #00c8ff;border-radius:3px;">
+              <span style="position:absolute;top:-18px;left:0;font-family:'Share Tech Mono',monospace;font-size:9px;background:rgba(0,200,255,0.2);color:#00c8ff;padding:1px 5px;border-radius:2px;white-space:nowrap;">Group 78%</span>
+            </div>
+            <div class="camera-label"><div class="live-dot"></div>Camera 2 • Campus</div>
+            <div class="cam-actions">
+              <div class="cam-action-btn" onclick="snapCam(event,2)">📷</div>
+              <div class="cam-action-btn text-cyan">🤖</div>
+            </div>
+          </div>
+          <!-- Camera 3 -->
+          <div class="camera-cell" onclick="openCamera(3)" title="Click to view Camera 3">
+            <div class="camera-cell-bg" style="background:linear-gradient(180deg,#1a1208,#0a0904);">
+              <div style="font-size:40px;opacity:0.3;">🌇</div>
+            </div>
+            <div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(0,0,0,0.7));"></div>
+            <div class="camera-label"><div class="live-dot"></div>Camera 3 • Parking</div>
+            <div class="cam-actions">
+              <div class="cam-action-btn" onclick="snapCam(event,3)">📷</div>
+              <div class="cam-action-btn text-cyan">🤖</div>
+            </div>
+          </div>
+          <!-- Camera 4 -->
+          <div class="camera-cell" onclick="openCamera(4)" title="Click to view Camera 4">
+            <div class="camera-cell-bg" style="background:linear-gradient(180deg,#101520,#060a10);">
+              <div style="font-size:40px;opacity:0.3;">🚪</div>
+            </div>
+            <div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(0,0,0,0.7));"></div>
+            <div class="camera-label"><div class="live-dot"></div>Camera 4 • Reception</div>
+            <div class="cam-actions">
+              <div class="cam-action-btn" onclick="snapCam(event,4)">📷</div>
+              <div class="cam-action-btn text-cyan">🤖</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Analytics -->
+      <div class="card">
+        <div class="section-header">
+          <div class="card-title" style="margin:0;">📊 Analytics</div>
+          <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text-muted);" id="analyticsUpdated">Updated: 0:01 ago</span>
+        </div>
+        <div class="analytics-stats">
+          <div class="stat-box">
+            <div class="stat-label">Total Alerts</div>
+            <div class="stat-value" id="alertCount">24</div>
+            <div class="stat-sub text-orange" id="alertSub">+2 this hour</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Last Incident</div>
+            <div class="stat-value" style="font-size:20px;" id="lastIncidentTime">03:42 PM</div>
+            <div class="stat-sub text-muted" id="lastIncidentAgo">10m ago</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">System Status</div>
+            <div class="stat-value" style="font-size:18px;" id="sysStatusVal">Nominal</div>
+            <div class="stat-sub text-green">All sensors online</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Incident Timeline -->
+      <div class="card">
+        <div class="card-title">⏱ Incident Timeline</div>
+        <div class="incident-item" onclick="showPage('incidents',document.querySelectorAll('.nav-link')[2])">
+          <div class="incident-icon fire">🔥</div>
+          <div class="incident-info">
+            <div class="incident-title">Fire Alarm - Science Block</div>
+            <div class="incident-detail">Smoke detected in lab 3</div>
+            <div class="incident-meta">
+              <span class="incident-time">03:32 PM</span>
+              <span class="badge badge-red">HIGH</span>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:3px;align-items:flex-end;">
+            <span style="font-size:10px;color:var(--accent-cyan);cursor:pointer;">View</span>
+            <span style="font-size:10px;color:var(--text-muted);">Map</span>
+          </div>
+        </div>
+        <div class="incident-item" onclick="showPage('incidents',document.querySelectorAll('.nav-link')[2])">
+          <div class="incident-icon access">🔒</div>
+          <div class="incident-info">
+            <div class="incident-title">Unauthorized Access - Gate B</div>
+            <div class="incident-detail">Gate sensor triggered</div>
+            <div class="incident-meta">
+              <span class="incident-time">02:50 PM</span>
+              <span class="badge badge-yellow">MED</span>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:3px;align-items:flex-end;">
+            <span style="font-size:10px;color:var(--accent-cyan);">View</span>
+            <span style="font-size:10px;color:var(--text-muted);">Camera</span>
+          </div>
+        </div>
+        <div class="incident-item" onclick="showPage('incidents',document.querySelectorAll('.nav-link')[2])">
+          <div class="incident-icon person">👤</div>
+          <div class="incident-info">
+            <div class="incident-title">Identified Student - Library</div>
+            <div class="incident-detail">Matched with record</div>
+            <div class="incident-meta">
+              <span class="incident-time">01:18 PM</span>
+              <span class="badge badge-cyan">LOW</span>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:3px;align-items:flex-end;">
+            <span style="font-size:10px;color:var(--accent-cyan);">View</span>
+            <span style="font-size:10px;color:var(--text-muted);">Details</span>
+          </div>
+        </div>
+        <!-- Dynamic incidents will be inserted here -->
+        <div id="dynamicIncidents"></div>
+      </div>
+
+      <!-- Campus Map -->
+      <div class="card">
+        <div class="section-header">
+          <div class="card-title" style="margin:0;">🗺 Campus Map</div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <select style="background:var(--bg-secondary);border:1px solid var(--border);color:var(--text-secondary);font-size:11px;padding:3px 8px;border-radius:4px;outline:none;">
+              <option>Ground</option><option>Floor 1</option><option>Floor 2</option>
+            </select>
+          </div>
+        </div>
+        <div class="map-container">
+          <div class="map-grid"></div>
+          <div class="map-building danger" style="left:15%;top:20%;width:22%;height:30%;">Science<br>Block 🔥</div>
+          <div class="map-building safe" style="left:42%;top:10%;width:18%;height:25%;">Main<br>Building</div>
+          <div class="map-building warning" style="left:65%;top:35%;width:16%;height:22%;">Gate B<br>⚠</div>
+          <div class="map-building safe" style="left:40%;top:50%;width:20%;height:28%;">Library</div>
+          <div class="map-building safe" style="left:10%;top:60%;width:22%;height:25%;">Sports<br>Complex</div>
+          <div class="map-marker" style="left:26%;top:35%;background:var(--accent-red);color:var(--accent-red);"></div>
+          <div class="map-marker" style="left:73%;top:46%;background:var(--accent-orange);color:var(--accent-orange);"></div>
+          <div class="map-marker" style="left:50%;top:64%;background:var(--accent-cyan);color:var(--accent-cyan);"></div>
+          <div class="map-legend">
+            <div class="map-legend-item"><div class="map-legend-dot" style="background:var(--accent-red);"></div>Danger</div>
+            <div class="map-legend-item"><div class="map-legend-dot" style="background:var(--accent-orange);"></div>Warning</div>
+            <div class="map-legend-item"><div class="map-legend-dot" style="background:var(--accent-cyan);"></div>Safe</div>
+          </div>
+          <div class="map-controls">
+            <button class="map-ctrl-btn" onclick="showToast('info','Map','Zoom in')">+</button>
+            <button class="map-ctrl-btn" onclick="showToast('info','Map','Zoom out')">−</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Row -->
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-danger" onclick="simulateIncident()">⚡ Simulate Incident</button>
+        <button class="btn btn-ghost" onclick="showToast('success','Report','Incident report generated and sent to authorities.')">📋 Generate Report</button>
+        <button class="btn btn-ghost" onclick="testAlarmBackend()">🔔 Alert Drill</button>
+      </div>
+
+    </div><!-- end col1 -->
+
+    <!-- ─── RIGHT COLUMN ─── -->
+    <div class="db-col2">
+
+      <!-- Threat Status -->
+      <div class="card" id="threatCard">
+        <div class="card-title">⚠ Threat Status</div>
+        <div class="threat-status-safe">
+          <div class="threat-icon-wrap" id="threatIcon">✅</div>
+          <div class="threat-safe-label" id="threatLabel">SAFE</div>
+          <div class="threat-title" id="threatTitle">No Threat Detected</div>
+          <div class="threat-sub" id="threatSub">All monitored zones are within normal parameters.</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text-muted);" id="lastScan">Last scan: 0:02 mins ago</div>
+        </div>
+        <div class="system-integrity">
+          <div>
+            <div style="font-size:11px;font-weight:600;">System Integrity</div>
+            <div style="font-size:10px;color:var(--text-muted);">All modules nominal</div>
+          </div>
+          <button class="btn btn-ghost" style="padding:4px 12px;font-size:11px;" onclick="showToast('info','System Check','All 7 modules passed integrity check.')">Acknowledge</button>
+        </div>
+      </div>
+
+      <!-- Operator Notes (TOP RIGHT) -->
+      <div class="card">
+        <div class="card-title">📝 Operator Notes</div>
+        <textarea class="op-notes-textarea" id="opNotes" placeholder="Add operator note...">No active incidents. Recommended lens clean in 30 days due to dust accumulation near entrance.</textarea>
+        <button class="btn btn-ghost w-full mt-8" style="font-size:11px;justify-content:center;" onclick="saveNote()">Save Note</button>
+      </div>
+
+      <!-- Recent Detections (BELOW Operator Notes) -->
+      <div class="card">
+        <div class="section-header">
+          <div class="card-title" style="margin:0;">🔍 Recent Detections</div>
+          <span class="badge badge-cyan" id="detectionBadge">3 events</span>
+        </div>
+        <div class="detection-list" id="detectionList">
+          <div class="detection-item" onclick="showDetectionDetail('Person detected','STU-214','92%','Today 10:24','Camera 1 · Corridor')">
+            <div class="detection-thumb">🚶</div>
+            <div class="detection-info">
+              <div class="detection-type text-green">Person detected</div>
+              <div class="detection-time">Today • 10:24</div>
+            </div>
+            <span class="detection-conf text-green">92%</span>
+          </div>
+          <div class="detection-item" onclick="showDetectionDetail('Threat object','UNKN-001','56%','Today 09:58','Camera 3 · Parking')">
+            <div class="detection-thumb">⚠️</div>
+            <div class="detection-info">
+              <div class="detection-type text-red">Threat object</div>
+              <div class="detection-time">Today • 09:58</div>
+            </div>
+            <span class="detection-conf text-red">56%</span>
+          </div>
+          <div class="detection-item" onclick="showDetectionDetail('Vehicle detected','VEH-077','78%','Yesterday 22:18','Camera 3 · Parking')">
+            <div class="detection-thumb">🚗</div>
+            <div class="detection-info">
+              <div class="detection-type text-cyan">Vehicle detected</div>
+              <div class="detection-time">Yesterday • 22:18</div>
+            </div>
+            <span class="detection-conf text-cyan">78%</span>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end col2 -->
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- PAGE 2: LIVE CAMERA                    -->
+<!-- ═══════════════════════════════════════ -->
+<div id="live-camera" class="page" style="padding:20px 24px;">
+  <div class="live-camera-grid">
+    <!-- Main Viewer -->
+    <div>
+      <div class="cam-tabs">
+        <button class="cam-tab active" onclick="selectCam(this,'Building 7 · North Gate','PTZ-01')">Cam 1 · Corridor</button>
+        <button class="cam-tab" onclick="selectCam(this,'Campus Lawn · East','Fixed-02')">Cam 2 · Campus</button>
+        <button class="cam-tab" onclick="selectCam(this,'Parking Lot · North','PTZ-03')">Cam 3 · Parking</button>
+        <button class="cam-tab" onclick="selectCam(this,'Main Reception','Fixed-04')">Cam 4 · Reception</button>
+      </div>
+      <div class="camera-viewer">
+        <div class="camera-viewer-header">
+          <span class="live-badge">LIVE</span>
+          <span style="font-size:11px;color:var(--text-secondary);">1920×1080</span>
+          <span id="camNameHeader" style="font-size:12px;color:var(--text-primary);font-weight:600;margin-left:8px;">Building 7 · North Gate</span>
+          <div class="viewer-meta">
+            <span id="liveTime" class="mono">10:26:14</span>
+            <span class="badge badge-green">Healthy · 30 FPS</span>
+          </div>
+        </div>
+        <!-- LIVE CAMERA FEED AREA — connected to FastAPI /video -->
+        <div class="camera-feed-area" style="position:relative;background:#000;overflow:hidden;">
+          <!-- Real MJPEG stream from backend -->
+          <img id="liveCamStream"
+               src="http://127.0.0.1:8000/video"
+               style="width:100%;height:100%;object-fit:cover;display:block;"
+               onerror="this.style.display='none';document.getElementById('camOffline').style.display='flex';">
+          <!-- Offline / error fallback -->
+          <div id="camOffline" style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;flex-direction:column;gap:10px;background:#020a12;">
+            <div style="font-size:48px;opacity:0.3;">📷</div>
+            <div style="font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--text-muted);text-align:center;">
+              Camera offline<br>
+              <span style="font-size:10px;">Start FastAPI: <span style="color:var(--accent-cyan);">uvicorn main:app --reload</span></span>
+            </div>
+            <button class="btn btn-ghost" style="font-size:11px;margin-top:4px;" onclick="retryCamStream()">↺ Retry Connection</button>
+          </div>
+          <!-- Scan-line overlay kept for aesthetics -->
+          <div class="scan-line" style="pointer-events:none;"></div>
+          <!-- Threat box overlay (shown by JS when needed) -->
+          <div class="det-box threat" id="threatBox" style="left:60%;top:18%;width:18%;height:32%;display:none;position:absolute;">
+            <div class="det-label">Threat • 78%</div>
+          </div>
+          <!-- FPS / status badge -->
+          <div style="position:absolute;top:10px;right:10px;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--accent-green);background:rgba(0,0,0,0.6);padding:2px 8px;border-radius:3px;pointer-events:none;" id="fpsCounter">● LIVE</div>
+        </div>
+        <div class="camera-controls">
+          <button class="ctrl-btn" id="playBtn" onclick="togglePlay()" title="Play/Pause">⏸</button>
+          <button class="ctrl-btn" onclick="showToast('info','Rewind','Rewinding 10 seconds')" title="Rewind">⏮</button>
+          <button class="ctrl-btn" onclick="showToast('info','Forward','Skipping forward')" title="Forward">⏭</button>
+          <span style="font-size:11px;color:var(--text-muted);">1x</span>
+          <span class="badge badge-green">Live</span>
+          <div class="timeline-bar" onclick="scrubTimeline(event,this)">
+            <div class="timeline-fill" id="timelineFill"></div>
+            <div class="timeline-dot" id="timelineDot"></div>
+          </div>
+          <span class="mono" style="font-size:10px;color:var(--text-muted);" id="timelinePos">00:02:14</span>
+          <span class="mono" style="font-size:10px;color:var(--text-muted);">00:15:00</span>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:12px;">
+        <div class="card">
+          <div class="card-title" style="font-size:10px;">🤖 AI Model</div>
+          <div style="font-size:12px;font-weight:600;">GuardianNet v4.3</div>
+          <div style="font-size:11px;color:var(--text-muted);">People / Vehicle / Threat</div>
+        </div>
+        <div class="card">
+          <div class="card-title" style="font-size:10px;">🎬 Recording</div>
+          <div style="font-size:12px;font-weight:600;" id="recordingStatus">Auto-archive enabled</div>
+          <div style="font-size:11px;color:var(--text-muted);">×30 days retention</div>
+        </div>
+        <div class="card">
+          <div class="card-title" style="font-size:10px;">🔔 Last Event</div>
+          <div style="font-size:11px;font-weight:600;" id="lastEventText">2026-04-10 22:18 — Person detected near entrance</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Panel -->
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <!-- Camera Info -->
+      <div class="card">
+        <div class="card-title">📷 Camera: <span id="camModelLabel">Nu · PTZ-01</span></div>
+        <div class="info-row"><span class="info-label">Location</span><span class="info-value" id="camLocation">Building 7 • Entrance A</span></div>
+        <div class="info-row"><span class="info-label">Model</span><span class="info-value">Axis Q6215</span></div>
+        <div class="info-row"><span class="info-label">Firmware</span><span class="info-value">6.5.2</span></div>
+        <div class="info-row"><span class="info-label">Last Maint.</span><span class="info-value">2026-03-12</span></div>
+        <div class="info-row"><span class="info-label">Status</span><span class="badge badge-green">Operational</span></div>
+        <div class="info-row"><span class="info-label">Coordinates</span><span class="info-value" style="font-size:10px;">37.4276°N 122.1697°W</span></div>
+        <div style="margin-top:12px;">
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);margin-bottom:4px;">
+            <span>Zoom</span><span class="mono text-cyan" id="zoomVal">5×</span>
+          </div>
+          <input type="range" class="zoom-slider" min="1" max="10" value="5" oninput="document.getElementById('zoomVal').textContent=this.value+'×'">
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="card">
+        <div class="section-header">
+          <div class="card-title" style="margin:0;">⚡ Quick Actions</div>
+          <span style="font-size:10px;color:var(--accent-cyan);cursor:pointer;" onclick="showToast('info','Presets','Preset manager opened.')">Presets</span>
+        </div>
+        <div class="quick-actions-grid">
+          <button class="quick-btn" onclick="showToast('info','Preset','Gate preset applied — PTZ moved')">🚪 Preset: Gate</button>
+          <button class="quick-btn" onclick="showToast('info','Preset','Parking preset applied — PTZ moved')">🅿 Preset: Parking</button>
+          <button class="quick-btn" onclick="takeSnapshot()">📷 Snapshot</button>
+          <button class="quick-btn" id="recordBtn" onclick="toggleRecord()">⏺ Record</button>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:8px;border-top:1px solid var(--border);">
+          <span style="font-size:12px;">Anonymize Faces</span>
+          <label class="toggle">
+            <input type="checkbox" id="anonFaces" onchange="toggleAnonymize(this)">
+            <div class="toggle-track"></div>
+            <div class="toggle-thumb"></div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Recent Detections (live camera page) -->
+      <div class="card">
+        <div class="section-header">
+          <div class="card-title" style="margin:0;">🔍 Recent Detections</div>
+          <span class="badge badge-cyan">3 events</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div class="detection-item" onclick="showDetectionDetail('Person detected','STU-214','92%','Today 10:24','Camera 1 · Corridor')">
+            <div class="detection-thumb">🚶</div>
+            <div class="detection-info">
+              <div class="detection-type text-green">Person detected</div>
+              <div class="detection-time">Today • 10:24</div>
+            </div>
+            <span class="detection-conf text-green">92%</span>
+          </div>
+          <div class="detection-item" onclick="showDetectionDetail('Threat object','UNKN-001','56%','Today 09:58','Camera 3 · Parking')">
+            <div class="detection-thumb">⚠️</div>
+            <div class="detection-info">
+              <div class="detection-type text-red">Threat object</div>
+              <div class="detection-time">Today • 09:58</div>
+            </div>
+            <span class="detection-conf text-red">56%</span>
+          </div>
+          <div class="detection-item" onclick="showDetectionDetail('Vehicle detected','VEH-077','78%','Yesterday 22:18','Camera 3 · Parking')">
+            <div class="detection-thumb">🚗</div>
+            <div class="detection-info">
+              <div class="detection-type text-cyan">Vehicle detected</div>
+              <div class="detection-time">Yesterday • 22:18</div>
+            </div>
+            <span class="detection-conf text-cyan">78%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Operator Notes -->
+      <div class="card">
+        <div class="card-title">📝 Operator Notes</div>
+        <textarea class="op-notes-textarea" placeholder="Add operator note...">No active incidents. Recommended lens clean in 30 days due to dust accumulation near entrance.</textarea>
+        <button class="btn btn-ghost w-full mt-8" style="font-size:11px;justify-content:center;" onclick="saveNote()">Save Note</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- PAGE 3: INCIDENTS                       -->
+<!-- ═══════════════════════════════════════ -->
+<div id="incidents" class="page" style="padding:20px 24px;">
+  <div style="max-width:1400px;margin:0 auto;">
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;">
+      <h2 style="font-family:'Rajdhani',sans-serif;font-size:22px;font-weight:700;">⚡ Incident Reports</h2>
+      <div style="display:flex;gap:8px;margin-left:auto;">
+        <button class="btn btn-ghost" onclick="showToast('success','Download','Incident clip downloaded.')">⬇ Download Clip</button>
+        <button class="btn btn-ghost" onclick="showToast('info','Note','Note panel opened.')">📝 Add Note</button>
+        <button class="btn btn-danger" onclick="showEscalateModal()">⚠ Escalate</button>
+      </div>
+    </div>
+    <div class="major-alert">
+      <div class="alert-header">
+        <div class="alert-icon-big">⚠️</div>
+        <div>
+          <div class="alert-title">FIGHT DETECTED — Library Courtyard</div>
+          <div class="alert-meta">
+            <div class="alert-meta-item">🕐 <span class="mono">2026-04-11 17:42:33 UTC</span></div>
+            <div class="alert-meta-item">📹 <span>Cam 12, Cam 19</span></div>
+            <div class="alert-meta-item">📍 <span>Library Courtyard</span></div>
+            <div class="alert-meta-item"><span class="badge badge-red">Confidence: 87%</span></div>
+          </div>
+        </div>
+        <div class="alert-actions">
+          <button class="btn btn-ghost" onclick="showToast('success','Download','Clip AL307 downloaded.')">⬇ Download</button>
+          <button class="btn btn-ghost" onclick="showToast('info','Note','Note added.')">📝 Note</button>
+          <button class="btn btn-danger" onclick="showEscalateModal()">🚨 Escalate</button>
+        </div>
+      </div>
+      <div class="alert-desc">Automated detection flagged a physical altercation involving multiple individuals near the north staircase of the Library Courtyard. Video clips captured from two angles and snapshot evidence have been generated. Review identities, corroborating evidence and escalate as needed.</div>
+    </div>
+    <div class="incident-detail-grid">
+      <!-- Playback -->
+      <div class="card">
+        <div class="section-header">
+          <div class="card-title" style="margin:0;">▶ Playback • Clipped Segment</div>
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-ghost" style="padding:4px 10px;font-size:11px;" onclick="showToast('info','Loop','Loop mode enabled.')">🔁 Loop</button>
+            <button class="btn btn-ghost" style="padding:4px 10px;font-size:11px;" onclick="showToast('info','Settings','Playback settings.')">⚙</button>
+          </div>
+        </div>
+        <div style="font-size:10px;color:var(--text-muted);margin-bottom:8px;" class="mono">Primary feed: Cam 12 • 00:00:12 clip • 17:42:25 — 17:42:37</div>
+        <div class="playback-viewer">
+          <div class="fight-scene">
+            <div style="position:absolute;inset:0;background:radial-gradient(ellipse at center,#0a1520 0%,#030a12 100%);"></div>
+            <div style="position:absolute;bottom:0;left:0;right:0;height:35%;background:linear-gradient(180deg,transparent,rgba(0,0,0,0.8));"></div>
+            <div class="fight-figure">🧍</div>
+            <div class="fight-figure" style="right:28%;left:auto;">🧍</div>
+            <div style="position:absolute;top:20%;left:25%;width:50%;height:55%;border:2px solid var(--accent-red);border-radius:3px;">
+              <span style="position:absolute;top:-18px;left:0;font-family:'Share Tech Mono',monospace;font-size:9px;background:rgba(255,45,85,0.2);color:var(--accent-red);padding:1px 6px;border-radius:2px;">FIGHT • 87%</span>
+            </div>
+            <div class="scan-line" style="opacity:0.3;"></div>
+          </div>
+        </div>
+        <div class="playback-controls">
+          <button class="ctrl-btn" onclick="this.textContent=this.textContent==='▶'?'⏸':'▶'">▶</button>
+          <button class="ctrl-btn">⏮</button>
+          <button class="ctrl-btn">⏭</button>
+          <div class="timeline-bar" onclick="scrubTimeline(event,this)" style="flex:1;">
+            <div class="timeline-fill" style="width:66%;"></div>
+            <div class="timeline-dot" style="left:66%;"></div>
+          </div>
+          <span class="mono" style="font-size:10px;color:var(--text-muted);">00:12</span>
+        </div>
+        <div style="display:flex;gap:6px;margin-top:8px;">
+          <button class="frame-btn" onclick="showToast('info','Frame','Previous frame')">← Frame -1</button>
+          <button class="frame-btn" onclick="showToast('info','Frame','Next frame')">Frame +1 →</button>
+        </div>
+        <div class="thumbnails mt-8">
+          <div class="thumb active" onclick="this.parentNode.querySelectorAll('.thumb').forEach(t=>t.classList.remove('active'));this.classList.add('active')">🥊</div>
+          <div class="thumb" onclick="this.parentNode.querySelectorAll('.thumb').forEach(t=>t.classList.remove('active'));this.classList.add('active')">👥</div>
+          <div class="thumb" onclick="this.parentNode.querySelectorAll('.thumb').forEach(t=>t.classList.remove('active'));this.classList.add('active')">🏃</div>
+        </div>
+        <div class="related-events mt-12">
+          <div class="related-title">Related Events Timeline</div>
+          <div class="related-grid">
+            <div class="related-item" onclick="showToast('info','Event','Verbal Altercation — East Quad @ 16:55')">
+              <div class="related-thumb">🗣️</div>
+              <div class="related-info"><strong>Verbal Altercation</strong>East Quad<br><span style="color:var(--text-muted);">2026-04-11 16:55</span><br>Confidence 23%</div>
+            </div>
+            <div class="related-item" onclick="showToast('info','Event','Crowd Gathering — Library Lawn @ 17:20')">
+              <div class="related-thumb">👥</div>
+              <div class="related-info"><strong>Crowd Gathering</strong>Library Lawn<br><span style="color:var(--text-muted);">2026-04-11 17:20</span><br>Confidence 58%</div>
+            </div>
+            <div class="related-item" onclick="showToast('info','Event','Possible Theft — North Corridor @ 15:02')">
+              <div class="related-thumb">🕵️</div>
+              <div class="related-info"><strong>Possible Theft</strong>North Corridor<br><span style="color:var(--text-muted);">2026-04-11 15:02</span><br>Confidence 61%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detected Persons -->
+      <div class="card">
+        <div class="card-title">👤 Detected Persons</div>
+        <div class="person-card">
+          <div class="person-header">
+            <div class="person-avatar" style="border-color:rgba(0,200,255,0.4);">👩‍🎓</div>
+            <div>
+              <div class="person-name">Maria Alvarez</div>
+              <div class="person-role">Student • Class 11B</div>
+              <div class="person-conf text-cyan">Match: 94%</div>
+            </div>
+          </div>
+          <div class="person-actions">
+            <button class="btn btn-ghost" onclick="showToast('info','Profile','Opening Maria Alvarez profile...')">View Profile</button>
+            <button class="btn btn-danger" onclick="showToast('danger','Flag','Maria Alvarez flagged for review.')">Flag</button>
+          </div>
+        </div>
+        <div class="person-card">
+          <div class="person-header">
+            <div class="person-avatar" style="border-color:rgba(255,45,85,0.4);">❓</div>
+            <div>
+              <div class="person-name">Unknown Person</div>
+              <div class="person-role" style="color:var(--accent-red);">No match in database</div>
+              <div class="person-conf text-orange">Match: 0% — Unverified</div>
+            </div>
+          </div>
+          <div class="person-actions">
+            <button class="btn btn-ghost" onclick="showToast('info','Search','Running facial recognition search...')">Identify</button>
+            <button class="btn btn-danger" onclick="showToast('danger','Alert','Security dispatched to investigate.')">Dispatch</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Evidence & Actions -->
+      <div class="card">
+        <div class="card-title">🔒 Evidence & Actions</div>
+        <div class="snapshot-grid">
+          <div class="snapshot" onclick="showToast('info','Snapshot','Snapshot 1 opened — 17:42:25')">📸</div>
+          <div class="snapshot" onclick="showToast('info','Snapshot','Snapshot 2 opened — 17:42:31')">🖼️</div>
+        </div>
+        <div class="ai-analysis-box">
+          <div class="ai-analysis-title">🤖 AI ANALYSIS</div>
+          <div class="ai-analysis-text">High-confidence physical altercation. Aggressive posture detected. Two individuals involved. Recommend immediate security response.</div>
+        </div>
+        <div class="response-steps">
+          <div class="response-step">
+            <div class="step-check checked" onclick="toggleCheck(this)">✓</div>
+            <span>Clip archived to evidence</span>
+          </div>
+          <div class="response-step">
+            <div class="step-check checked" onclick="toggleCheck(this)">✓</div>
+            <span>Security notified</span>
+          </div>
+          <div class="response-step">
+            <div class="step-check" onclick="toggleCheck(this)"></div>
+            <span>Identities confirmed</span>
+          </div>
+          <div class="response-step">
+            <div class="step-check" onclick="toggleCheck(this)"></div>
+            <span>Report filed</span>
+          </div>
+        </div>
+        <div class="escalate-btns">
+          <button class="btn btn-ghost" onclick="showToast('success','Report','Incident report filed.')">📋 File Report</button>
+          <button class="btn btn-danger" onclick="showEscalateModal()">🚨 Escalate</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- PAGE 4: MAP & ZONES                     -->
+<!-- ═══════════════════════════════════════ -->
+<div id="map-zones" class="page" style="padding:20px 24px;">
+  <div style="max-width:1400px;margin:0 auto;">
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;">
+      <h2 style="font-family:'Rajdhani',sans-serif;font-size:22px;font-weight:700;">🗺 Campus Map & Zones</h2>
+      <div style="display:flex;gap:8px;margin-left:auto;">
+        <button class="btn btn-ghost" onclick="showToast('info','Export','Map exported as PDF.')">⬇ Export</button>
+        <button class="btn btn-ghost" onclick="showToast('info','Zone','Zone editor opened.')">✏ Edit Zones</button>
+        <button class="btn btn-danger" onclick="showToast('danger','Alert','Campus-wide alert triggered!')">🔔 Campus Alert</button>
+      </div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div class="map-container" style="height:500px;border-radius:8px;">
+        <div class="map-grid"></div>
+        <div class="map-building danger" style="left:12%;top:15%;width:20%;height:25%;">🔥 Science<br>Block A</div>
+        <div class="map-building safe" style="left:38%;top:8%;width:22%;height:20%;">Main Admin<br>Building</div>
+        <div class="map-building safe" style="left:65%;top:12%;width:18%;height:22%;">Engineering<br>Block</div>
+        <div class="map-building warning" style="left:10%;top:50%;width:18%;height:20%;">⚠ Gate B<br>Entrance</div>
+        <div class="map-building safe" style="left:35%;top:42%;width:22%;height:25%;">📚 Library<br>& Courtyard</div>
+        <div class="map-building safe" style="left:62%;top:45%;width:18%;height:20%;">Cafeteria</div>
+        <div class="map-building safe" style="left:20%;top:75%;width:25%;height:18%;">🏃 Sports Complex</div>
+        <div class="map-building safe" style="left:52%;top:72%;width:20%;height:18%;">Student<br>Hostel</div>
+        <div style="position:absolute;left:8%;top:8%;width:28%;height:38%;border:2px dashed rgba(255,45,85,0.4);border-radius:6px;background:rgba(255,45,85,0.04);">
+          <span style="position:absolute;top:4px;right:6px;font-size:9px;color:rgba(255,45,85,0.7);font-family:'Share Tech Mono',monospace;">ZONE A — HIGH RISK</span>
+        </div>
+        <div style="position:absolute;left:33%;top:36%;width:28%;height:30%;border:2px dashed rgba(255,140,0,0.4);border-radius:6px;background:rgba(255,140,0,0.04);">
+          <span style="position:absolute;top:4px;right:6px;font-size:9px;color:rgba(255,140,0,0.7);font-family:'Share Tech Mono',monospace;">ZONE B — MONITOR</span>
+        </div>
+        <div class="map-marker" style="left:22%;top:28%;background:var(--accent-red);color:var(--accent-red);">
+          <span style="position:absolute;top:14px;left:50%;transform:translateX(-50%);font-size:8px;color:var(--accent-red);white-space:nowrap;font-family:'Share Tech Mono',monospace;">FIRE 🔥</span>
+        </div>
+        <div class="map-marker" style="left:19%;top:60%;background:var(--accent-orange);color:var(--accent-orange);">
+          <span style="position:absolute;top:14px;left:50%;transform:translateX(-50%);font-size:8px;color:var(--accent-orange);white-space:nowrap;font-family:'Share Tech Mono',monospace;">UNAUTH</span>
+        </div>
+        <div class="map-marker" style="left:46%;top:55%;background:var(--accent-cyan);color:var(--accent-cyan);">
+          <span style="position:absolute;top:14px;left:50%;transform:translateX(-50%);font-size:8px;color:var(--accent-cyan);white-space:nowrap;font-family:'Share Tech Mono',monospace;">FIGHT ⚔</span>
+        </div>
+        <div class="map-legend">
+          <div class="map-legend-item"><div class="map-legend-dot" style="background:var(--accent-red);"></div>Danger</div>
+          <div class="map-legend-item"><div class="map-legend-dot" style="background:var(--accent-orange);"></div>Warning</div>
+          <div class="map-legend-item"><div class="map-legend-dot" style="background:var(--accent-green);"></div>Safe</div>
+          <div class="map-legend-item"><div class="map-legend-dot" style="background:var(--accent-cyan);"></div>Cameras</div>
+        </div>
+        <div class="map-controls">
+          <button class="map-ctrl-btn">+</button>
+          <button class="map-ctrl-btn">−</button>
+          <button class="map-ctrl-btn" style="font-size:10px;" onclick="showToast('info','Floor','Ground floor')">G</button>
+          <button class="map-ctrl-btn" style="font-size:10px;" onclick="showToast('info','Floor','Floor 1')">1</button>
+        </div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:16px;">
+      <div class="card">
+        <div class="card-title">📍 Active Incidents</div>
+        <div class="incident-item"><div class="incident-icon fire">🔥</div><div class="incident-info"><div class="incident-title">Fire - Science Block A</div><div class="incident-time mono" style="color:var(--text-muted);">03:32 PM</div></div><span class="badge badge-red">HIGH</span></div>
+        <div class="incident-item"><div class="incident-icon access">🔒</div><div class="incident-info"><div class="incident-title">Unauthorized - Gate B</div><div class="incident-time mono" style="color:var(--text-muted);">02:50 PM</div></div><span class="badge badge-yellow">MED</span></div>
+        <div class="incident-item"><div class="incident-icon person">⚔</div><div class="incident-info"><div class="incident-title">Fight - Library Courtyard</div><div class="incident-time mono" style="color:var(--text-muted);">05:42 PM</div></div><span class="badge badge-red">HIGH</span></div>
+      </div>
+      <div class="card">
+        <div class="card-title">📹 Camera Coverage</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+          <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:4px;padding:8px;text-align:center;"><div style="font-size:20px;margin-bottom:4px;">✅</div><div style="font-size:10px;color:var(--text-secondary);">Cam 1-4 Online</div></div>
+          <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:4px;padding:8px;text-align:center;"><div style="font-size:20px;margin-bottom:4px;">⚠️</div><div style="font-size:10px;color:var(--text-secondary);">Cam 5 Warning</div></div>
+          <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:4px;padding:8px;text-align:center;"><div style="font-size:20px;margin-bottom:4px;">✅</div><div style="font-size:10px;color:var(--text-secondary);">Cam 6-8 Online</div></div>
+          <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:4px;padding:8px;text-align:center;"><div style="font-size:20px;margin-bottom:4px;">✅</div><div style="font-size:10px;color:var(--text-secondary);">Cam 12,19 Active</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">🛡 Zone Status</div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 8px;background:rgba(255,45,85,0.08);border:1px solid rgba(255,45,85,0.2);border-radius:4px;"><span style="font-size:11px;">Zone A — Science Wing</span><span class="badge badge-red">DANGER</span></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 8px;background:rgba(255,140,0,0.06);border:1px solid rgba(255,140,0,0.2);border-radius:4px;"><span style="font-size:11px;">Zone B — Library Area</span><span class="badge badge-orange">ALERT</span></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 8px;background:rgba(0,255,157,0.05);border:1px solid rgba(0,255,157,0.15);border-radius:4px;"><span style="font-size:11px;">Zone C — Admin Block</span><span class="badge badge-green">SAFE</span></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 8px;background:rgba(0,255,157,0.05);border:1px solid rgba(0,255,157,0.15);border-radius:4px;"><span style="font-size:11px;">Zone D — Sports Complex</span><span class="badge badge-green">SAFE</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- PAGE 5: SETTINGS                        -->
+<!-- ═══════════════════════════════════════ -->
+<div id="settings" class="page" style="padding:20px 24px;">
+  <div style="max-width:1400px;margin:0 auto;">
+    <div style="display:grid;grid-template-columns:1fr 1fr 300px;gap:16px;">
+
+      <!-- Alert Rules -->
+      <div class="card">
+        <div class="section-header">
+          <div class="card-title" style="margin:0;">⚙ Alert Rules</div>
+          <button class="cam-list-btn" onclick="showToast('success','Rule','New alert rule created.')">+ New Rule</button>
+        </div>
+        <div class="alert-rule">
+          <div class="rule-header">
+            <span class="rule-name">Fight / Aggression Detection</span>
+            <label class="toggle"><input type="checkbox" checked onchange="showToast('info','Rule',this.checked?'Fight detection enabled':'Fight detection disabled')"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+          </div>
+          <div class="rule-desc">Trigger alert when physical altercation is detected with confidence above threshold.</div>
+          <div class="rule-controls">
+            <span style="font-size:11px;color:var(--text-muted);">Confidence:</span>
+            <input type="range" class="sensitivity-slider" min="0" max="100" value="75" oninput="this.nextElementSibling.textContent=this.value+'%'">
+            <span class="mono text-cyan" style="font-size:11px;">75%</span>
+            <select class="rule-select"><option>All Zones</option><option>Zone A</option><option>Zone B</option></select>
+          </div>
+        </div>
+        <div class="alert-rule">
+          <div class="rule-header">
+            <span class="rule-name">Unauthorized Access</span>
+            <label class="toggle"><input type="checkbox" checked onchange="showToast('info','Rule',this.checked?'Access detection on':'Access detection off')"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+          </div>
+          <div class="rule-desc">Alert when restricted gate or door is accessed without authorization.</div>
+          <div class="rule-controls">
+            <span style="font-size:11px;color:var(--text-muted);">Confidence:</span>
+            <input type="range" class="sensitivity-slider" min="0" max="100" value="80" oninput="this.nextElementSibling.textContent=this.value+'%'">
+            <span class="mono text-cyan" style="font-size:11px;">80%</span>
+            <select class="rule-select"><option>Gate B</option><option>All Gates</option></select>
+          </div>
+        </div>
+        <div class="alert-rule">
+          <div class="rule-header">
+            <span class="rule-name">Loitering Detection</span>
+            <label class="toggle"><input type="checkbox" onchange="showToast('info','Rule',this.checked?'Loitering detection on':'Loitering detection off')"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+          </div>
+          <div class="rule-desc">Flag individuals who remain stationary in a zone for extended periods.</div>
+          <div class="rule-controls">
+            <span style="font-size:11px;color:var(--text-muted);">Duration:</span>
+            <select class="rule-select"><option>5 min</option><option>10 min</option><option>15 min</option></select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Camera Management -->
+      <div class="card">
+        <div class="section-header">
+          <div class="card-title" style="margin:0;">📷 Camera Management</div>
+          <button class="cam-list-btn" onclick="showToast('info','Camera','Add camera wizard opened.')">+ Add Camera</button>
+        </div>
+        <div>
+          <div class="camera-list-item">
+            <div class="cam-indicator online"></div>
+            <div class="cam-info"><div class="cam-info-name">Cam 1 — Main Corridor</div><div class="cam-info-ip">192.168.1.101 • PTZ</div></div>
+            <div class="cam-list-actions">
+              <button class="cam-list-btn" onclick="showToast('info','Settings','Camera 1 settings opened.')">Settings</button>
+              <button class="cam-list-btn" onclick="openCamera(1)">View</button>
+            </div>
+          </div>
+          <div class="camera-list-item">
+            <div class="cam-indicator online"></div>
+            <div class="cam-info"><div class="cam-info-name">Cam 2 — Campus Lawn</div><div class="cam-info-ip">192.168.1.102 • Fixed</div></div>
+            <div class="cam-list-actions">
+              <button class="cam-list-btn" onclick="showToast('info','Settings','Camera 2 settings opened.')">Settings</button>
+              <button class="cam-list-btn" onclick="openCamera(2)">View</button>
+            </div>
+          </div>
+          <div class="camera-list-item">
+            <div class="cam-indicator warning"></div>
+            <div class="cam-info"><div class="cam-info-name">Cam 5 — Science Block</div><div class="cam-info-ip">192.168.1.105 • Fixed</div></div>
+            <div class="cam-list-actions">
+              <button class="cam-list-btn" onclick="showToast('danger','Warning','Camera 5: Low frame rate detected. Check network.')">Diagnose</button>
+              <button class="cam-list-btn" onclick="showToast('info','Restart','Camera 5 restarting...')">Restart</button>
+            </div>
+          </div>
+          <div class="camera-list-item">
+            <div class="cam-indicator online"></div>
+            <div class="cam-info"><div class="cam-info-name">Cam 12 — Courtyard East</div><div class="cam-info-ip">192.168.1.112 • PTZ</div></div>
+            <div class="cam-list-actions">
+              <button class="cam-list-btn" onclick="showToast('info','Settings','Camera 12 settings.')">Settings</button>
+              <button class="cam-list-btn" onclick="openCamera(1)">View</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notifications + Quick Actions -->
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div class="card">
+          <div class="section-header">
+            <div class="card-title" style="margin:0;">🔔 Notifications</div>
+            <button class="cam-list-btn" onclick="clearNotifs()">Clear All</button>
+          </div>
+          <div id="notifList">
+            <div class="notif-item notif-high">
+              <div class="notif-item-header">
+                <span class="notif-id">AL307</span>
+                <span class="notif-title">Fight detected at Courtyard</span>
+                <span class="notif-time">2m ago</span>
+              </div>
+              <div class="notif-desc">High confidence physical altercation. Respond immediately.</div>
+              <div class="notif-actions">
+                <button class="notif-btn-sm" onclick="showPage('incidents',document.querySelectorAll('.nav-link')[2])">View</button>
+                <button class="notif-btn-sm" onclick="showToast('info','Fwd','Notification forwarded.')">Fwd</button>
+                <button class="notif-btn-sm dismiss" onclick="this.closest('.notif-item').remove();updateBadge()">Dismiss</button>
+              </div>
+            </div>
+            <div class="notif-item notif-med">
+              <div class="notif-item-header">
+                <span class="notif-id">AL301</span>
+                <span class="notif-title">Smoke detected in Science lab</span>
+                <span class="notif-time">8m ago</span>
+              </div>
+              <div class="notif-desc">Possible fire event. Check camera 5 immediately.</div>
+              <div class="notif-actions">
+                <button class="notif-btn-sm" onclick="showPage('live-camera',document.querySelectorAll('.nav-link')[1])">View</button>
+                <button class="notif-btn-sm" onclick="showToast('info','Fwd','Notification forwarded.')">Fwd</button>
+                <button class="notif-btn-sm dismiss" onclick="this.closest('.notif-item').remove();updateBadge()">Dismiss</button>
+              </div>
+            </div>
+            <div class="notif-item notif-low">
+              <div class="notif-item-header">
+                <span class="notif-id">AL295</span>
+                <span class="notif-title">False alarm cleared — Parking</span>
+                <span class="notif-time">22m ago</span>
+              </div>
+              <div class="notif-desc">Vehicle loitering — confirmed delivery truck. Cleared.</div>
+              <div class="notif-actions">
+                <button class="notif-btn-sm" onclick="showToast('info','Note','Event archived.')">View</button>
+                <button class="notif-btn-sm dismiss" onclick="this.closest('.notif-item').remove();updateBadge()">Dismiss</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">⚡ Quick Actions</div>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <button class="btn btn-ghost w-full" style="justify-content:flex-start;font-size:12px;" onclick="showToast('info','Diagnostics','Running full system diagnostics...')">🔧 Run Diagnostics</button>
+            <button class="btn btn-ghost w-full" style="justify-content:flex-start;font-size:12px;" onclick="testAlarmBackend()">📡 Send Test Alert</button>
+            <button class="btn btn-ghost w-full" style="justify-content:flex-start;font-size:12px;" onclick="showToast('info','Logs','System logs downloaded.')">📋 Export Logs</button>
+            <button class="btn btn-ghost w-full" style="justify-content:flex-start;font-size:12px;" onclick="showToast('info','Support','Support ticket created.')">🆘 Contact Support</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Users & Integrations -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;">
+      <div class="card">
+        <div class="section-header">
+          <div class="card-title" style="margin:0;">👥 User & Access Control</div>
+          <button class="cam-list-btn" onclick="showToast('info','Invite','Invite user dialog opened.')">+ Invite User</button>
+        </div>
+        <div class="user-grid">
+          <div class="user-item"><div class="user-avatar-sm">👩</div><div><div class="user-name">Evelyn Tan</div><div class="user-email"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="e386cd97828da380828e939690cd868796">[email&#160;protected]</a></div></div></div>
+          <div class="user-item"><div class="user-avatar-sm">👨</div><div><div class="user-name">Marcus Lee</div><div class="user-email"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="2f4201434a4a6f4c4e425f5a5c014a4b5a">[email&#160;protected]</a></div></div></div>
+          <div class="user-item"><div class="user-avatar-sm">👮</div><div><div class="user-name">Sofia Baviera</div><div class="user-email"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f281dc9093849b978093b291939f828781dc979687">[email&#160;protected]</a></div></div></div>
+          <div class="user-item"><div class="user-avatar-sm">👨‍💼</div><div><div class="user-name">Daniel Park</div><div class="user-email"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b8dc96c8d9cad3f8dbd9d5c8cdcb96dddccd">[email&#160;protected]</a></div></div></div>
+        </div>
+        <div class="divider"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;font-size:12px;">
+          <div><div style="font-weight:600;">On-Call: Night Patrol</div><div style="font-size:10px;color:var(--text-muted);">Officer Reed • Active</div></div>
+          <div style="display:flex;gap:6px;">
+            <button class="cam-list-btn" onclick="showToast('info','Edit','On-call edited.')">Edit</button>
+            <button class="cam-list-btn" onclick="showToast('success','Contact','Contacting on-call team...')">Contact</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="section-header">
+          <div class="card-title" style="margin:0;">🔗 Integrations</div>
+          <button class="cam-list-btn" onclick="showToast('info','Test','Running all integration tests...')">Test All</button>
+        </div>
+        <div class="integration-item">
+          <div class="integration-icon">📱</div>
+          <div style="flex:1;"><div class="integration-name">Mobile Push</div><div class="integration-status">Enabled for campus days</div></div>
+          <label class="toggle"><input type="checkbox" checked onchange="showToast('info','Integration','Mobile push '+(this.checked?'enabled':'disabled'))"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+          <button class="test-btn" onclick="showToast('success','Test','Push notification sent!')">Send Test</button>
+        </div>
+        <div class="integration-item">
+          <div class="integration-icon">📧</div>
+          <div style="flex:1;"><div class="integration-name">Email Service</div><div class="integration-status">SMTP configured</div></div>
+          <label class="toggle"><input type="checkbox" checked onchange="showToast('info','Integration','Email '+(this.checked?'enabled':'disabled'))"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+          <button class="test-btn" onclick="showToast('success','Test','Test email sent!')">Send Test</button>
+        </div>
+        <div class="integration-item">
+          <div class="integration-icon">🚨</div>
+          <div style="flex:1;"><div class="integration-name">Third-Party Dispatch</div><div class="integration-status">Emergency services API</div></div>
+          <label class="toggle"><input type="checkbox" onchange="showToast('info','Integration','Dispatch '+(this.checked?'enabled':'disabled'))"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+          <button class="test-btn" onclick="showToast('success','Test','Dispatch API responding.')">Send Test</button>
+        </div>
+        <div class="integration-item">
+          <div class="integration-icon">📡</div>
+          <div style="flex:1;"><div class="integration-name">SMS Gateway</div><div class="integration-status">Twilio connected</div></div>
+          <label class="toggle"><input type="checkbox" checked onchange="showToast('info','Integration','SMS '+(this.checked?'enabled':'disabled'))"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+          <button class="test-btn" onclick="showToast('success','Test','SMS delivered!')">Send Test</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ESCALATE MODAL -->
+<div class="alert-overlay" id="escalateModal">
+  <div class="alert-modal">
+    <div style="text-align:center;font-size:36px;margin-bottom:12px;">🚨</div>
+    <div class="modal-title">ESCALATE INCIDENT AL307</div>
+    <div class="modal-body">
+      This will immediately notify:<br><br>
+      • Campus Security Team (all officers on-duty)<br>
+      • Dean of Student Affairs<br>
+      • Emergency Services dispatcher<br>
+      • Parent contact protocol activated<br><br>
+      This action is <strong style="color:var(--accent-red);">irreversible</strong> and will be logged in the incident report with your credentials and timestamp.
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeEscalateModal()">Cancel</button>
+      <button class="btn btn-danger" onclick="confirmEscalate()">🚨 Confirm Escalate</button>
+    </div>
+  </div>
+</div>
+
+<!-- DETECTION DETAIL MODAL -->
+<div class="alert-overlay" id="detectionModal">
+  <div class="alert-modal" style="border-color:rgba(0,200,255,0.4);box-shadow:var(--glow-cyan);">
+    <div style="text-align:center;font-size:36px;margin-bottom:12px;" id="detModalIcon">🔍</div>
+    <div class="modal-title" style="color:var(--accent-cyan);" id="detModalTitle">Detection Details</div>
+    <div class="modal-body" id="detModalBody"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="document.getElementById('detectionModal').classList.remove('show')">Close</button>
+      <button class="btn btn-primary" onclick="document.getElementById('detectionModal').classList.remove('show');showPage('incidents',document.querySelectorAll('.nav-link')[2])">View Incident</button>
+    </div>
+  </div>
+</div>
+
+<!-- INCIDENT SIMULATION MODAL -->
+<div class="alert-overlay" id="incidentOverlay">
+  <div class="alert-modal" style="border-color:rgba(255,45,85,0.6);">
+    <div style="text-align:center;font-size:42px;margin-bottom:12px;animation:alertBlink 0.8s ease-in-out infinite;">⚠️</div>
+    <div class="modal-title">INCIDENT DETECTED!</div>
+    <div class="modal-body" id="incidentOverlayText">A fight has been detected.</div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="document.getElementById('incidentOverlay').classList.remove('show')">Dismiss</button>
+      <button class="btn btn-danger" onclick="viewIncident()">🚀 View Incident</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div id="toastContainer"></div>
+
+<footer>© 2026 AI Campus Guardian • Privacy • Terms • Support • Last sync: 2026-04-11 10:27 • All cameras online</footer>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+// ─── PAGE NAVIGATION ───
+function showPage(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+  const page = document.getElementById(id);
+  if (page) page.classList.add('active');
+  if (el) el.classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// ─── CAMERA SELECT ───
+function openCamera(n) {
+  showPage('live-camera', document.querySelectorAll('.nav-link')[1]);
+  const tabs = document.querySelectorAll('.cam-tab');
+  if (tabs[n-1]) tabs[n-1].click();
+}
+function selectCam(el, name, model) {
+  document.querySelectorAll('.cam-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  const camNames = { 'PTZ-01': 'Building 7 • Entrance A', 'Fixed-02': 'Campus Lawn • East Side', 'PTZ-03': 'Parking Lot • North Entrance', 'Fixed-04': 'Main Reception • Desk' };
+  document.getElementById('camNameHeader').textContent = name;
+  document.getElementById('camModelLabel').textContent = `Nu · ${model}`;
+  document.getElementById('camLocation').textContent = camNames[model] || name;
+  showToast('info', 'Camera', `Switched to ${name}`);
+  // ── BACKEND: switch live stream source ──
+  const streamImg = document.getElementById('liveCamStream');
+  const offlineDiv = document.getElementById('camOffline');
+  const fpsEl = document.getElementById('fpsCounter');
+  if (streamImg) {
+    if (model === 'PTZ-01') {
+      streamImg.src = BACKEND + '/video?_t=' + Date.now();
+      streamImg.style.display = 'block';
+      if (offlineDiv) offlineDiv.style.display = 'none';
+      if (fpsEl) fpsEl.textContent = '● LIVE';
+    } else {
+      streamImg.style.display = 'none';
+      if (offlineDiv) { offlineDiv.style.display = 'flex'; }
+      if (fpsEl) fpsEl.textContent = 'OFFLINE';
+    }
+  }
+}
+
+// ─── SNAPSHOT ───
+function snapCam(e, n) {
+  e.stopPropagation();
+  showToast('success', '📷 Snapshot', `Camera ${n} snapshot saved to archive`);
+}
+function takeSnapshot() {
+  showToast('success', '📷 Snapshot', 'Snapshot saved to evidence archive');
+  document.getElementById('lastEventText').textContent = new Date().toLocaleString() + ' — Snapshot taken';
+}
+
+// ─── RECORD TOGGLE ───
+let isRecording = false;
+function toggleRecord() {
+  isRecording = !isRecording;
+  const btn = document.getElementById('recordBtn');
+  const status = document.getElementById('recordingStatus');
+  if (isRecording) {
+    btn.classList.add('recording');
+    btn.textContent = '⏹ Stop';
+    if (status) status.textContent = '● Recording in progress...';
+    showToast('danger', '⏺ Recording', 'Manual recording started — saving to archive');
+  } else {
+    btn.classList.remove('recording');
+    btn.textContent = '⏺ Record';
+    if (status) status.textContent = 'Auto-archive enabled';
+    showToast('success', '⏹ Stopped', 'Recording saved to archive (00:00:34)');
+  }
+}
+
+// ─── ANONYMIZE FACES ───
+function toggleAnonymize(el) {
+  if (el.checked) {
+    showToast('success', '🔒 Privacy', 'Face anonymization ENABLED — all live feeds blurred');
+  } else {
+    showToast('info', '🔓 Privacy', 'Face anonymization DISABLED');
+  }
+}
+
+// ─── PLAY/PAUSE ───
+let isPlaying = true;
+function togglePlay() {
+  isPlaying = !isPlaying;
+  document.getElementById('playBtn').textContent = isPlaying ? '⏸' : '▶';
+  showToast('info', isPlaying ? 'Playing' : 'Paused', isPlaying ? 'Live feed resumed' : 'Feed paused');
+}
+
+// ─── SAVE NOTE ───
+function saveNote() {
+  const note = document.getElementById('opNotes');
+  if (note && note.value.trim()) {
+    showToast('success', '📝 Note Saved', 'Operator note logged at ' + new Date().toLocaleTimeString());
+  } else {
+    showToast('info', '📝 Note', 'Nothing to save — note is empty');
+  }
+}
+
+// ─── DETECTION DETAIL MODAL ───
+function showDetectionDetail(type, id, conf, time, cam) {
+  const icons = { 'Person detected': '🚶', 'Threat object': '⚠️', 'Vehicle detected': '🚗' };
+  document.getElementById('detModalIcon').textContent = icons[type] || '🔍';
+  document.getElementById('detModalTitle').textContent = type.toUpperCase();
+  document.getElementById('detModalBody').innerHTML = `
+    <strong>Object ID:</strong> ${id}<br>
+    <strong>Confidence:</strong> ${conf}<br>
+    <strong>Time:</strong> ${time}<br>
+    <strong>Camera:</strong> ${cam}<br><br>
+    AI model GuardianNet v4.3 flagged this detection. Evidence snapshot has been saved to the archive.
+  `;
+  document.getElementById('detectionModal').classList.add('show');
+}
+
+// ─── TIMELINE SCRUB ───
+function scrubTimeline(e, el) {
+  const rect = el.getBoundingClientRect();
+  const pct = Math.min(Math.max((e.clientX - rect.left) / rect.width, 0), 1);
+  const fill = el.querySelector('[class*="fill"]');
+  const dot = el.querySelector('[class*="dot"]');
+  if (fill) fill.style.width = (pct * 100) + '%';
+  if (dot) dot.style.left = (pct * 100) + '%';
+  const total = 15 * 60;
+  const sec = Math.floor(pct * total);
+  const m = Math.floor(sec / 60).toString().padStart(2, '0');
+  const s = (sec % 60).toString().padStart(2, '0');
+  const posEl = document.getElementById('timelinePos');
+  if (posEl) posEl.textContent = `00:${m}:${s}`;
+}
+
+// ─── BACKEND INTEGRATION ───
+const BACKEND = 'http://127.0.0.1:8000';
+
+// ── Check camera/backend status on load ──
+async function checkCameraStatus() {
+  try {
+    const res = await fetch(`${BACKEND}/camera`, { signal: AbortSignal.timeout(4000) });
+    const data = await res.json();
+    console.log('[Campus Guardian] Backend status:', data);
+    showToast('success', '📷 Backend Connected', 'Camera status: ' + (data.status || 'OK'));
+    // Show stream in dashboard thumb
+    const thumb = document.getElementById('dashCam1Thumb');
+    const offline = document.getElementById('dashCam1Offline');
+    if (thumb && offline) { thumb.style.display = 'block'; offline.style.display = 'none'; }
+  } catch (err) {
+    console.warn('[Campus Guardian] Backend unreachable:', err.message);
+    showToast('danger', '⚠ Backend Offline', 'Start FastAPI: uvicorn main:app --reload');
+    // Show offline state in dashboard cam 1 and live viewer
+    const thumb = document.getElementById('dashCam1Thumb');
+    if (thumb) { thumb.style.display = 'none'; }
+    const offline = document.getElementById('dashCam1Offline');
+    if (offline) offline.style.display = 'flex';
+    const streamImg = document.getElementById('liveCamStream');
+    if (streamImg) streamImg.style.display = 'none';
+    const camOff = document.getElementById('camOffline');
+    if (camOff) camOff.style.display = 'flex';
+  }
+}
+
+// ── Test Alarm — calls /test-sound ──
+async function testAlarmBackend() {
+  showToast('info', '🔔 Alarm', 'Triggering alarm via backend...');
+  try {
+    const res = await fetch(`${BACKEND}/test-sound`, { signal: AbortSignal.timeout(5000) });
+    const data = await res.json();
+    showToast('success', '🔔 Alarm Triggered', 'Backend responded: ' + JSON.stringify(data.status));
+  } catch (err) {
+    showToast('danger', '🔔 Alarm Failed', 'Backend not reachable — is FastAPI running?');
+  }
+}
+
+// ── Retry live camera stream ──
+function retryCamStream() {
+  const img = document.getElementById('liveCamStream');
+  const offline = document.getElementById('camOffline');
+  if (img) {
+    offline.style.display = 'none';
+    img.style.display = 'block';
+    // Cache-bust to force reload
+    img.src = `${BACKEND}/video?_t=${Date.now()}`;
+    showToast('info', '📷 Camera', 'Retrying stream connection...');
+  }
+}
+
+// ── Run on page load ──
+window.addEventListener('DOMContentLoaded', () => {
+  checkCameraStatus();
+});
+
+
+setInterval(() => {
+  const el = document.getElementById('liveTime');
+  if (el) el.textContent = new Date().toTimeString().slice(0, 8);
+}, 1000);
+
+// ─── DYNAMIC SCAN TIME ───
+let scanSeconds = 2;
+setInterval(() => {
+  scanSeconds++;
+  const el = document.getElementById('lastScan');
+  if (el) {
+    if (scanSeconds < 60) el.textContent = `Last scan: 0:${String(scanSeconds).padStart(2,'0')} mins ago`;
+    else { const m = Math.floor(scanSeconds/60); el.textContent = `Last scan: ${m}:${String(scanSeconds%60).padStart(2,'0')} mins ago`; }
+  }
+}, 1000);
+
+// ─── DYNAMIC ANALYTICS UPDATE ───
+let analyticsTimer = 0;
+setInterval(() => {
+  analyticsTimer++;
+  const el = document.getElementById('analyticsUpdated');
+  if (el) el.textContent = `Updated: ${analyticsTimer}:${String(Math.floor(Math.random()*59)).padStart(2,'0')} ago`;
+}, 60000);
+
+// ─── SIMULATE RANDOM DETECTION EVENTS ───
+const detectionPool = [
+  { type: 'Person detected', id: 'STU-' + Math.floor(Math.random()*900+100), conf: Math.floor(Math.random()*20+78) + '%', cam: 'Cam 2 · Campus', icon: '🚶', color: 'text-green', time: '' },
+  { type: 'Vehicle detected', id: 'VEH-' + Math.floor(Math.random()*900+100), conf: Math.floor(Math.random()*20+70) + '%', cam: 'Cam 3 · Parking', icon: '🚗', color: 'text-cyan', time: '' },
+  { type: 'Group gathering', id: 'GRP-' + Math.floor(Math.random()*900+100), conf: Math.floor(Math.random()*20+55) + '%', cam: 'Cam 1 · Corridor', icon: '👥', color: 'text-orange', time: '' },
+];
+let detectionCount = 3;
+function addRandomDetection() {
+  const pool = [
+    { type: 'Person detected', conf: Math.floor(Math.random()*20+78), icon: '🚶', color: 'text-green' },
+    { type: 'Vehicle detected', conf: Math.floor(Math.random()*20+65), icon: '🚗', color: 'text-cyan' },
+    { type: 'Group detected',   conf: Math.floor(Math.random()*15+55), icon: '👥', color: 'text-orange' },
+  ];
+  const d = pool[Math.floor(Math.random() * pool.length)];
+  const now = new Date();
+  const timeStr = `Today • ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+  const id = 'ID-' + Math.floor(Math.random()*9000+1000);
+  detectionCount++;
+
+  const list = document.getElementById('detectionList');
+  if (list) {
+    const item = document.createElement('div');
+    item.className = 'detection-item new';
+    item.style.cursor = 'pointer';
+    item.innerHTML = `
+      <div class="detection-thumb">${d.icon}</div>
+      <div class="detection-info">
+        <div class="detection-type ${d.color}">${d.type}</div>
+        <div class="detection-time">${timeStr}</div>
+      </div>
+      <span class="detection-conf ${d.color}">${d.conf}%</span>
+    `;
+    item.onclick = () => showDetectionDetail(d.type, id, d.conf+'%', timeStr, 'Camera 1');
+    list.insertBefore(item, list.firstChild);
+    // keep max 5
+    while (list.children.length > 5) list.removeChild(list.lastChild);
+    const badge = document.getElementById('detectionBadge');
+    if (badge) badge.textContent = Math.min(list.children.length, 9) + ' events';
+    // update last event
+    const lastEvent = document.getElementById('lastEventText');
+    if (lastEvent) lastEvent.textContent = now.toLocaleDateString() + ' ' + now.toLocaleTimeString().slice(0,5) + ' — ' + d.type;
+  }
+  // increment alert counter occasionally
+  if (Math.random() > 0.7) {
+    const ac = document.getElementById('alertCount');
+    if (ac) ac.textContent = parseInt(ac.textContent) + 1;
+  }
+}
+setInterval(addRandomDetection, 8000 + Math.random() * 7000);
+
+// ─── SIMULATE INCIDENT ───
+function simulateIncident() {
+  const types = [
+    { title:'FIGHT DETECTED', loc:'Library Courtyard', cam:'Cam 12', conf:'87%', icon:'⚔️' },
+    { title:'FIRE ALARM TRIGGERED', loc:'Science Block Lab 3', cam:'Cam 05', conf:'94%', icon:'🔥' },
+    { title:'UNAUTHORIZED ACCESS', loc:'Gate B — North Campus', cam:'Cam 08', conf:'91%', icon:'🔒' },
+    { title:'SUSPICIOUS ACTIVITY', loc:'Parking Lot Zone C', cam:'Cam 03', conf:'73%', icon:'🕵️' },
+  ];
+  const t = types[Math.floor(Math.random() * types.length)];
+  const now = new Date().toLocaleTimeString();
+  document.getElementById('incidentOverlayText').innerHTML = `
+    A <strong style="color:var(--accent-red);">${t.title}</strong> has been detected at <strong>${t.loc}</strong>.<br><br>
+    📹 Camera: ${t.cam}<br>
+    📊 Confidence: ${t.conf}<br>
+    🕐 Time: ${now}<br><br>
+    Immediate response required.
+  `;
+  document.getElementById('incidentOverlay').classList.add('show');
+  setThreat(true, t.icon, t.title, t.loc + ' — ' + t.cam);
+  showToast('danger', '🚨 ALERT', t.title + ' — ' + t.loc);
+  document.getElementById('alertCount').textContent = parseInt(document.getElementById('alertCount').textContent) + 1;
+  document.getElementById('threatBox').style.display = 'block';
+  setTimeout(() => { setThreat(false); document.getElementById('threatBox').style.display = 'none'; }, 12000);
+}
+
+function setThreat(active, icon, title, sub) {
+  const iconEl = document.getElementById('threatIcon');
+  const labelEl = document.getElementById('threatLabel');
+  const titleEl = document.getElementById('threatTitle');
+  const subEl = document.getElementById('threatSub');
+  const statusEl = document.getElementById('globalStatus');
+  if (active) {
+    iconEl.textContent = icon;
+    iconEl.style.background = 'rgba(255,45,85,0.2)';
+    iconEl.style.borderColor = 'rgba(255,45,85,0.5)';
+    iconEl.style.animation = 'alertBlink 1s ease-in-out infinite';
+    labelEl.textContent = 'THREAT DETECTED'; labelEl.style.color = 'var(--accent-red)';
+    titleEl.textContent = title; subEl.textContent = sub;
+    statusEl.className = 'status-pill alert';
+    statusEl.innerHTML = '<div class="dot"></div><span>ALERT ACTIVE</span>';
+  } else {
+    iconEl.textContent = '✅';
+    iconEl.style.background = 'rgba(0,255,157,0.1)';
+    iconEl.style.borderColor = 'rgba(0,255,157,0.3)';
+    iconEl.style.animation = 'safePulse 3s ease-in-out infinite';
+    labelEl.textContent = 'SAFE'; labelEl.style.color = 'var(--accent-green)';
+    titleEl.textContent = 'No Threat Detected';
+    subEl.textContent = 'All monitored zones are within normal parameters.';
+    statusEl.className = 'status-pill online';
+    statusEl.innerHTML = '<div class="dot"></div><span>All Sensors Online</span>';
+  }
+}
+function viewIncident() {
+  document.getElementById('incidentOverlay').classList.remove('show');
+  showPage('incidents', document.querySelectorAll('.nav-link')[2]);
+}
+
+// ─── ESCALATE MODAL ───
+function showEscalateModal() { document.getElementById('escalateModal').classList.add('show'); }
+function closeEscalateModal() { document.getElementById('escalateModal').classList.remove('show'); }
+function confirmEscalate() {
+  closeEscalateModal();
+  showToast('danger', '🚨 Escalated', 'All teams notified. Emergency protocol activated.');
+  showToast('success', '📧 Email Sent', 'Report dispatched to Dean & Security Chief.');
+  setTimeout(() => showToast('success', '📱 SMS Sent', '6 officers notified via SMS'), 1200);
+}
+
+// ─── TOAST ───
+function showToast(type, title, msg) {
+  const icons = { success:'✅', danger:'🚨', info:'ℹ️' };
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `
+    <div class="toast-icon">${icons[type]||'ℹ️'}</div>
+    <div style="flex:1;">
+      <div class="toast-title">${title}</div>
+      <div class="toast-msg">${msg}</div>
+    </div>
+    <button class="toast-close" onclick="this.closest('.toast').remove()">×</button>
+  `;
+  container.appendChild(toast);
+  setTimeout(() => { if (toast.parentNode) toast.remove(); }, 4000);
+}
+
+// ─── NOTIFICATIONS ───
+function clearNotifs() {
+  document.getElementById('notifList').innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px;">No new notifications</div>';
+  updateBadge();
+  showToast('success', 'Cleared', 'All notifications dismissed.');
+}
+function updateBadge() {
+  const badge = document.getElementById('notifBadge');
+  const items = document.querySelectorAll('.notif-item');
+  if (badge) badge.textContent = items.length > 0 ? items.length : '0';
+}
+
+// ─── STEP CHECK TOGGLE (Incidents page checkboxes) ───
+function toggleCheck(el) {
+  el.classList.toggle('checked');
+  el.textContent = el.classList.contains('checked') ? '✓' : '';
+}
+
+// ─── RESTORE DYNAMIC FEATURES ON DOM READY ───
+document.addEventListener('DOMContentLoaded', () => {
+
+  // ── Click press-down feedback on all interactive buttons ──
+  function addRipple(e) {
+    const btn = e.currentTarget;
+    btn.style.transform = 'scale(0.95)';
+    setTimeout(() => { btn.style.transform = ''; }, 110);
+  }
+  document.querySelectorAll('.btn, .quick-btn, .cam-list-btn, .ctrl-btn, .frame-btn, .map-ctrl-btn, .cam-action-btn, .notif-btn-sm').forEach(btn => {
+    btn.addEventListener('mousedown', addRipple);
+  });
+
+  // ── Live FPS flicker in camera viewer ──
+  setInterval(() => {
+    const fps = document.getElementById('fpsCounter');
+    if (fps && fps.textContent.includes('LIVE')) {
+      fps.textContent = '● ' + (28 + Math.floor(Math.random() * 4)) + ' FPS';
+      setTimeout(() => { if (fps) fps.textContent = '● LIVE'; }, 900);
+    }
+  }, 3000);
+
+  // ── Alert count badge highlight when value changes ──
+  const alertCountEl = document.getElementById('alertCount');
+  if (alertCountEl) {
+    const observer = new MutationObserver(() => {
+      alertCountEl.style.color = 'var(--accent-red)';
+      alertCountEl.style.textShadow = '0 0 14px rgba(255,45,85,0.9)';
+      setTimeout(() => { alertCountEl.style.color = ''; alertCountEl.style.textShadow = ''; }, 1000);
+    });
+    observer.observe(alertCountEl, { childList: true, characterData: true, subtree: true });
+  }
+
+  // ── Sync notif badge count on load ──
+  updateBadge();
+
+  // ── Camera cell hover: show scan-line glow ──
+  document.querySelectorAll('.camera-cell').forEach(cell => {
+    cell.addEventListener('mouseenter', () => { cell.style.boxShadow = '0 0 18px rgba(0,200,255,0.25)'; });
+    cell.addEventListener('mouseleave', () => { cell.style.boxShadow = ''; });
+  });
+
+  // ── Detection item entrance animation on new items ──
+  // (addRandomDetection already adds class 'new'; this ensures transitions work)
+  document.querySelectorAll('.detection-item').forEach(item => {
+    item.addEventListener('mouseenter', () => { item.style.transform = 'translateX(3px)'; });
+    item.addEventListener('mouseleave', () => { item.style.transform = ''; });
+  });
+
+  // ── Incident timeline item hover ──
+  document.querySelectorAll('.incident-item').forEach(item => {
+    item.addEventListener('mouseenter', () => { item.style.paddingLeft = '10px'; });
+    item.addEventListener('mouseleave', () => { item.style.paddingLeft = ''; });
+  });
+
+  // ── Nav link active underline pulse ──
+  document.querySelectorAll('.nav-link').forEach(link => {
+    link.addEventListener('click', function() {
+      this.style.transition = 'all 0.15s';
+      this.style.transform = 'scale(0.97)';
+      setTimeout(() => { this.style.transform = ''; }, 150);
+    });
+  });
+
+  // ── Quick-btn active press for camera page ──
+  document.querySelectorAll('.quick-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      this.style.background = 'rgba(0,200,255,0.18)';
+      setTimeout(() => { this.style.background = ''; }, 300);
+    });
+  });
+
+  // ── Cam tabs click feedback ──
+  document.querySelectorAll('.cam-tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+      this.style.transform = 'scale(0.97)';
+      setTimeout(() => { this.style.transform = ''; }, 120);
+    });
+  });
+
+  // ── Toggle switch visual feedback ──
+  document.querySelectorAll('.toggle input').forEach(toggle => {
+    toggle.addEventListener('change', function() {
+      const thumb = this.closest('.toggle').querySelector('.toggle-thumb');
+      if (thumb) {
+        thumb.style.transition = 'all 0.25s cubic-bezier(0.34,1.56,0.64,1)';
+      }
+    });
+  });
+
+  // ── Step-check click feedback ──
+  document.querySelectorAll('.step-check').forEach(el => {
+    el.addEventListener('mousedown', function() {
+      this.style.transform = 'scale(0.85)';
+      setTimeout(() => { this.style.transform = ''; }, 120);
+    });
+  });
+
+  // ── Card hover: subtle top-border glow ──
+  document.querySelectorAll('.card').forEach(card => {
+    card.addEventListener('mouseenter', () => {
+      card.style.borderColor = 'rgba(0,200,255,0.35)';
+      card.style.boxShadow = '0 2px 20px rgba(0,200,255,0.06)';
+    });
+    card.addEventListener('mouseleave', () => {
+      card.style.borderColor = '';
+      card.style.boxShadow = '';
+    });
+  });
+
+});
+
+</script>
+</body>
+</html>
